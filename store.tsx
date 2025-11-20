@@ -9,6 +9,8 @@ interface AppContextType {
   tasks: Task[];
   addTask: (task: Omit<Task, 'id' | 'date'>) => void;
   deleteTask: (id: string) => void;
+  showToast: (message: string, type?: 'success' | 'error') => void;
+  toast: { message: string; type: 'success' | 'error' } | null;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -16,6 +18,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     // Load from local storage
@@ -65,9 +68,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTasks(prev => prev.filter(t => t.id !== id));
   };
 
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   return (
-    <AppContext.Provider value={{ user, login, logout, tasks, addTask, deleteTask }}>
+    <AppContext.Provider value={{ user, login, logout, tasks, addTask, deleteTask, showToast, toast }}>
       {children}
     </AppContext.Provider>
   );

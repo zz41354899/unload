@@ -8,7 +8,7 @@ import { History } from './pages/History';
 import { NewTask } from './pages/NewTask';
 
 const AppContent: React.FC = () => {
-  const { user } = useAppStore();
+  const { user, toast } = useAppStore();
   const [currentPage, setCurrentPage] = useState('login');
 
   // Simple Route Protection
@@ -27,11 +27,24 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <Layout currentPage={currentPage} navigate={setCurrentPage}>
-      {currentPage === 'dashboard' && <Dashboard navigate={setCurrentPage} />}
-      {currentPage === 'history' && <History navigate={setCurrentPage} />}
-      {currentPage === 'new-task' && <NewTask navigate={setCurrentPage} />}
-    </Layout>
+    <>
+      <Layout currentPage={currentPage} navigate={setCurrentPage}>
+        {currentPage === 'dashboard' && <Dashboard navigate={setCurrentPage} />}
+        {currentPage === 'history' && <History navigate={setCurrentPage} />}
+        {currentPage === 'new-task' && <NewTask navigate={setCurrentPage} />}
+      </Layout>
+      
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-8 right-8 z-[9999]">
+          <div className={`px-6 py-4 rounded-lg shadow-2xl font-medium animate-slide-up ${
+            toast.type === 'success' ? 'bg-white text-green-500' : 'bg-white text-red-500'
+          }`}>
+            {toast.message}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

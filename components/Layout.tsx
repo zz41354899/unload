@@ -177,15 +177,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, navigate 
         {children}
       </main>
 
-      {/* Global Toast Notification */}
-      {toast && (
-        <div className="fixed bottom-8 right-8 bg-white border border-gray-100 shadow-xl px-6 py-4 rounded-2xl flex items-center gap-4 animate-slide-up z-[60]">
-          <div className={`p-2 rounded-full ${toast.type === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-             <CheckCircle className="w-5 h-5" />
-          </div>
-          <span className="text-text font-bold tracking-wide pr-2">{toast.message}</span>
-        </div>
-      )}
     </div>
   );
 };
