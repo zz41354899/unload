@@ -174,8 +174,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                 <h3 className="text-lg font-bold">一週未來情緒趨勢</h3>
                 <span className="text-sm text-gray-400">{currentYear}年{currentMonth}月</span>
             </div>
-            <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={trendData}>
                         <CartesianGrid vertical={false} stroke="#f0f0f0" />
                         <XAxis 
@@ -207,7 +206,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                         />
                     </LineChart>
                 </ResponsiveContainer>
-            </div>
          </div>
 
          {/* Ratio Pie Chart */}
@@ -216,8 +214,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
             {totalTasks > 0 ? (
                 <>
                     <div className="flex-1 flex items-center justify-center relative">
-                        <div className="w-[220px] h-[220px]">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width={220} height={220}>
                                 <PieChart>
                                     <Pie
                                         data={pieData}
@@ -235,12 +232,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                                     </Pie>
                                 </PieChart>
                             </ResponsiveContainer>
-                            {/* Center Text - Shows Total Tasks */}
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none flex-col">
+                        {/* Center Text - Shows Total Tasks */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none flex-col" style={{ width: '220px', height: '220px' }}>
                                 <span className="text-5xl font-bold text-text">
                                 {totalTasks}
                                 </span>
-                            </div>
                         </div>
                     </div>
                     <div className="mt-4 flex justify-center gap-4 text-sm flex-wrap">
