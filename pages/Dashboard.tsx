@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import { Task, ResponsibilityOwner } from '../types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Smile, MessageSquare, Book, TrendingUp, AlertCircle } from 'lucide-react';
+import { Smile, MessageSquare, Book, TrendingUp, AlertCircle, ChevronDown } from 'lucide-react';
 
 interface DashboardProps {
   navigate: (page: string) => void;
@@ -11,6 +11,7 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
   const { tasks, user } = useAppStore();
+  const [trendMode, setTrendMode] = useState<'future' | 'past'>('future');
   
   // Date Helper
   const today = new Date();
@@ -30,32 +31,51 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
     { name: '他的課題', value: theirTasks, color: '#E5E7EB' },
   ].filter(d => d.value > 0);
 
-  // Trend Chart - Future 7 Days (Starting Today)
+  // Trend Chart - Support both Future 7 Days and Past 7 Days
   const getTrendData = () => {
     const data = [];
     // Normalize "Today" to midnight for consistent comparison
     const todayNormal = new Date();
     todayNormal.setHours(0,0,0,0);
 
-    // 0 to 6 represents Today + next 6 days
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(todayNormal);
-      d.setDate(todayNormal.getDate() + i); 
-      
-      const dateStr = d.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' }); // e.g. 11/20
-      
-      // Count tasks for this specific calendar day
-      const count = tasks.filter(t => {
-        const tDate = new Date(t.date);
-        tDate.setHours(0,0,0,0);
-        return tDate.getTime() === d.getTime();
-      }).length;
+    if (trendMode === 'future') {
+      // Future: Today + next 6 days
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(todayNormal);
+        d.setDate(todayNormal.getDate() + i); 
+        
+        const dateStr = d.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' });
+        
+        const count = tasks.filter(t => {
+          const tDate = new Date(t.date);
+          tDate.setHours(0,0,0,0);
+          return tDate.getTime() === d.getTime();
+        }).length;
 
-      // Use 0 instead of null so the line chart is continuous even with empty days
-      data.push({
-        name: dateStr,
-        val: count
-      });
+        data.push({
+          name: dateStr,
+          val: count
+        });
+      }
+    } else {
+      // Past: Last 6 days + Today
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(todayNormal);
+        d.setDate(todayNormal.getDate() - i); 
+        
+        const dateStr = d.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' });
+        
+        const count = tasks.filter(t => {
+          const tDate = new Date(t.date);
+          tDate.setHours(0,0,0,0);
+          return tDate.getTime() === d.getTime();
+        }).length;
+
+        data.push({
+          name: dateStr,
+          val: count
+        });
+      }
     }
     return data;
   };
@@ -171,8 +191,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
          {/* Trend Chart */}
          <div className="lg:col-span-2 bg-white p-8 rounded-2xl shadow-sm">
             <div className="flex justify-between items-center mb-8">
-                <h3 className="text-lg font-bold">一週未來情緒趨勢</h3>
-                <span className="text-sm text-gray-400">{currentYear}年{currentMonth}月</span>
+                <h3 className="text-lg font-bold">
+                  {trendMode === 'future' ? '一週未來情緒趨勢' : '一週過去情緒趨勢'}
+                </h3>
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <select 
+                      value={trendMode}
+                      onChange={(e) => setTrendMode(e.target.value as 'future' | 'past')}
+                      className="appearance-none bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="future">未來7天</option>
+                      <option value="past">過去7天</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  </div>
+                  <span className="text-sm text-gray-400">{currentYear}年{currentMonth}月</span>
+                </div>
             </div>
             <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={trendData}>
