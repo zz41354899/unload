@@ -189,9 +189,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
          
          {/* Trend Chart */}
-         <div className="lg:col-span-2 bg-white p-8 rounded-2xl shadow-sm">
-            <div className="flex justify-between items-center mb-8">
-                <h3 className="text-lg font-bold">
+         <div className="lg:col-span-2 bg-white p-6 md:p-8 rounded-2xl shadow-sm">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 md:gap-3 mb-6 md:mb-8">
+                <h3 className="text-base md:text-lg font-bold">
                   {trendMode === 'future' ? '一週未來情緒趨勢' : '一週過去情緒趨勢'}
                 </h3>
                 <div className="flex items-center gap-3">
@@ -199,18 +199,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                     <select 
                       value={trendMode}
                       onChange={(e) => setTrendMode(e.target.value as 'future' | 'past')}
-                      className="appearance-none bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="appearance-none bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 pr-8 text-xs md:text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
                     >
                       <option value="future">未來7天</option>
                       <option value="past">過去7天</option>
                     </select>
                     <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   </div>
-                  <span className="text-sm text-gray-400">{currentYear}年{currentMonth}月</span>
+                  <span className="text-xs md:text-sm text-gray-400 whitespace-nowrap">{currentYear}年{currentMonth}月</span>
                 </div>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={trendData}>
+            <ResponsiveContainer width="100%" height={350}>
+                    <LineChart data={trendData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
                         <CartesianGrid vertical={false} stroke="#f0f0f0" />
                         <XAxis 
                             dataKey="name" 
@@ -224,7 +224,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                             tickLine={false}
                             tick={{fontSize: 12, fill: '#666'}}
                             allowDecimals={false}
-                            domain={[0, 'auto']} 
+                            domain={[0, 'auto']}
+                            width={30}
                         />
                         <Tooltip 
                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
