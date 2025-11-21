@@ -176,7 +176,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
             { label: '釐清次數', value: totalTasks, icon: TrendingUp, delay: 0 },
             { label: '我能掌控的部分', value: myTasks, icon: Book, delay: 100 },
             { label: '不在我範圍內的部分', value: theirTasks, icon: MessageSquare, delay: 200 },
-            { label: '一起影響的部分', value: sharedTasks, icon: Smile, delay: 300 },
+            { label: '共同的影響部分', value: sharedTasks, icon: Smile, delay: 300 },
         ].map((stat, idx) => (
             <div 
                 key={stat.label} 
@@ -252,7 +252,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
 
          {/* Ratio Pie Chart */}
          <div className="bg-white p-8 rounded-2xl shadow-sm flex flex-col min-h-[500px]">
-            <h3 className="text-lg font-bold mb-4">內外在因素分布</h3>
+            <h3 className="text-lg font-bold mb-4">外在因素分布</h3>
             {totalTasks > 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center">
                     <div className="flex items-center justify-center relative" style={{ width: '220px', height: '220px' }}>
@@ -285,19 +285,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
                         {sharedTasks > 0 && (
                             <div className="flex items-center gap-2">
                                 <span className="w-3 h-3 rounded-full bg-[#1ABC9C]"></span>
-                                <span className="text-gray-600 font-medium">共同課題</span>
+                                <span className="text-gray-600 font-medium">共同的影響部分</span>
                             </div>
                         )}
                         {myTasks > 0 && (
                             <div className="flex items-center gap-2">
                                 <span className="w-3 h-3 rounded-full bg-[#2C3E2C]"></span>
-                                <span className="text-gray-600 font-medium">我的課題</span>
+                                <span className="text-gray-600 font-medium">我能掌控的部分</span>
                             </div>
                         )}
                         {theirTasks > 0 && (
                             <div className="flex items-center gap-2">
                                 <span className="w-3 h-3 rounded-full bg-[#E5E7EB]"></span>
-                                <span className="text-gray-600 font-medium">他的課題</span>
+                                <span className="text-gray-600 font-medium">不在我範圍內的部分</span>
                             </div>
                         )}
                     </div>

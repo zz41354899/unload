@@ -127,7 +127,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
     return (
       <WizardLayout
         title="發生了什麼事了？"
-        subtitle="請選擇最貼近你現在狀態的情境"
+        subtitle="請選擇最貼近你現在的狀態"
         onBack={handleBack}
         onNext={handleNext}
         nextDisabled={!isValid}
@@ -167,7 +167,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
     return (
       <WizardLayout
         title="這件事情讓你擔心什麼？"
-        subtitle="請選出最貼近你此刻的擔心"
+        subtitle="請選出最貼近的外在因素"
         onBack={handleBack}
         onNext={handleNext}
         nextDisabled={!isValid}
@@ -314,8 +314,8 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
             <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
                 <h4 className="font-bold mb-2 text-sm">判斷提示：</h4>
                 <ul className="list-disc pl-5 text-sm text-gray-600 space-y-2">
-                    <li>如果你的控制力落在 0–20% 左右，多半屬於「對方的課題」（例如公司流程、錄取決定）。</li>
-                    <li>如果介於 20–60% 中間，代表這件事是雙方共同影響的課題（例如面試互動、溝通是否清楚）。</li>
+                    <li>如果你的控制力落在 0至20% 左右，多半屬於「對方的課題」（例如公司流程、錄取決定）。</li>
+                    <li>如果介於 20至60% 之間，代表這件事是雙方共同影響的課題（例如面試互動、溝通是否清楚）。</li>
                     <li>如果超過 60%，這部分比較屬於「我的課題」（例如準備程度、投遞履歷、方向選擇）。</li>
                 </ul>
             </div>

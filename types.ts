@@ -1,32 +1,32 @@
-
 export enum TaskCategory {
-  Interview = '面試相關',
-  Resume = '履歷與作品集',
-  CareerDirection = '職涯方向不確定',
-  JobSearchPressure = '求職進度壓力',
-  FamilyExpectation = '家人與伴侶期待',
+  Interview = '面試壓力',
+  CareerPlanning = '職涯規劃',
+  SelfConfusion = '自我迷惘',
+  ProgressAnxiety = '進度焦慮',
+  ExpectationPressure = '他人期待',
   FinancialPressure = '財務壓力',
-  MarketCompetition = '市場競爭',
+  MarketChange = '市場變動',
   Other = '其他'
 }
 
 export enum TaskWorry {
-  Performance = '我的表現',
-  Rejection = '怕被拒絕',
-  OthersThoughts = '他人怎麼看我',
-  Pressure = '潛在壓力',
-  Comparison = '比較心態',
-  Anxiety = '期待焦慮',
-  Decision = '無法做決定',
-  Uncertainty = '不確定性',
+  Performance = '擔心表現',
+  Rejection = '害怕拒絕',
+  OthersThoughts = '在意眼光',
+  Pressure = '隱性壓力',
+  Comparison = '比較焦慮',
+  TimeStress = '時間緊迫',
+  Decision = '難以決定',
+  Uncertainty = '未來不明',
   Other = '其他'
 }
 
 export enum ResponsibilityOwner {
-  Mine = '我的課題',
-  Theirs = '對方課題',
-  Shared = '共同的課題'
+  Mine = '我能掌控的部分',
+  Theirs = '不在我範圍內的部分',
+  Shared = '共同的影響部分'
 }
+
 
 export interface Task {
   id: string;
