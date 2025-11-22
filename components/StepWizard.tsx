@@ -102,41 +102,55 @@ export const SelectionGrid: React.FC<SelectionGridProps> = ({ options, selected,
 };
 
 export const MultiSelectGrid: React.FC<MultiSelectGridProps> = ({ options, selected, onSelect }) => {
+  const MAX_SELECTIONS = 2;
+
   const toggleOption = (option: string) => {
     if (selected.includes(option)) {
       onSelect(selected.filter(item => item !== option));
     } else {
-      onSelect([...selected, option]);
+      if (selected.length < MAX_SELECTIONS) {
+        onSelect([...selected, option]);
+      }
     }
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {options.map((option) => (
-        <button
-          key={option}
-          onClick={() => toggleOption(option)}
-          className={`
-            p-5 text-left rounded-lg border transition-all duration-200 flex items-center
-            ${selected.includes(option)
-              ? 'border-accent text-accent bg-accent/5 font-medium ring-1 ring-accent' 
-              : 'border-gray-200 hover:border-gray-300 bg-white text-gray-600'}
-          `}
-        >
-          <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center flex-shrink-0 transition-all ${
-            selected.includes(option)
-              ? 'border-accent bg-accent'
-              : 'border-gray-300'
-          }`}>
-            {selected.includes(option) && (
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </div>
-          <span>{option}</span>
-        </button>
-      ))}
+    <div>
+      {selected.length >= MAX_SELECTIONS && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex gap-2">
+          <span className="text-sm text-amber-800">最多只能選擇 {MAX_SELECTIONS} 筆</span>
+        </div>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {options.map((option) => (
+          <button
+            key={option}
+            onClick={() => toggleOption(option)}
+            disabled={!selected.includes(option) && selected.length >= MAX_SELECTIONS}
+            className={`
+              p-5 text-left rounded-lg border transition-all duration-200 flex items-center
+              ${selected.includes(option)
+                ? 'border-accent text-accent bg-accent/5 font-medium ring-1 ring-accent' 
+                : selected.length >= MAX_SELECTIONS
+                ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'
+                : 'border-gray-200 hover:border-gray-300 bg-white text-gray-600'}
+            `}
+          >
+            <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center flex-shrink-0 transition-all ${
+              selected.includes(option)
+                ? 'border-accent bg-accent'
+                : 'border-gray-300'
+            }`}>
+              {selected.includes(option) && (
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+            <span>{option}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
