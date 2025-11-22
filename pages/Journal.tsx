@@ -102,32 +102,24 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-12">
+    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 pb-12 px-4 md:px-0">
       
       {/* Header */}
-      <div className="bg-white rounded-2xl p-8 md:p-12 shadow-sm border border-gray-100">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">摘要日記</h1>
-            <p className="text-gray-600">記錄每日的課題與反思，追蹤自己的成長</p>
-          </div>
-          <button 
-            onClick={() => navigate('dashboard')}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
+      <div className="bg-white rounded-2xl p-6 md:p-12 shadow-sm border border-gray-100">
+        <div className="mb-6">
+          <h1 className="text-xl md:text-2xl font-bold mb-2">反思日記</h1>
+          <p className="text-gray-600 text-sm md:text-base">記錄每日的課題與反思，追蹤自己的成長</p>
         </div>
 
         {/* Date Picker */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
           <input 
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
           />
-          <span className="text-sm text-gray-500">
+          <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
             {new Date(selectedDate).toLocaleDateString('zh-TW', { 
               weekday: 'long', 
               year: 'numeric', 
@@ -138,12 +130,12 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
         </div>
 
         {/* Daily Quote */}
-        <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-xl p-6 border border-primary/20">
+        <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-xl p-4 md:p-6 border border-primary/20">
           <div className="flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm text-primary/60 font-medium mb-1">今日語錄</p>
-              <p className="text-base leading-relaxed text-text font-medium">
+            <Sparkles className="w-4 md:w-5 h-4 md:h-5 text-primary shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs md:text-sm text-primary/60 font-medium mb-1">今日語錄</p>
+              <p className="text-sm md:text-base leading-relaxed text-text font-medium">
                 "{getDailyQuote()}"
               </p>
             </div>
@@ -152,21 +144,21 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         {/* Today's Summary */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-4">
-            <Calendar className="w-5 h-5 text-primary" />
-            <h3 className="font-bold">今日摘要</h3>
+            <Calendar className="w-4 md:w-5 h-4 md:h-5 text-primary" />
+            <h3 className="font-bold text-sm md:text-base">今日摘要</h3>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 text-sm">課題總數</span>
-              <span className="text-2xl font-bold text-text">{todayTasks.length}</span>
+              <span className="text-gray-600 text-xs md:text-sm">課題總數</span>
+              <span className="text-xl md:text-2xl font-bold text-text">{todayTasks.length}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 text-sm">平均掌控力</span>
-              <span className="text-2xl font-bold text-accent">
+              <span className="text-gray-600 text-xs md:text-sm">平均掌控力</span>
+              <span className="text-xl md:text-2xl font-bold text-accent">
                 {todayTasks.length > 0 
                   ? Math.round(todayTasks.reduce((sum, t) => sum + t.controlLevel, 0) / todayTasks.length)
                   : 0}%
@@ -190,19 +182,19 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
         </div>
 
         {/* Week Stats */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            <h3 className="font-bold">本週統計</h3>
+            <TrendingUp className="w-4 md:w-5 h-4 md:h-5 text-primary" />
+            <h3 className="font-bold text-sm md:text-base">本週統計</h3>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 text-sm">課題總數</span>
-              <span className="text-2xl font-bold text-text">{weekStats.total}</span>
+              <span className="text-gray-600 text-xs md:text-sm">課題總數</span>
+              <span className="text-xl md:text-2xl font-bold text-text">{weekStats.total}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 text-sm">平均掌控力</span>
-              <span className="text-2xl font-bold text-accent">{weekStats.avgControl}%</span>
+              <span className="text-gray-600 text-xs md:text-sm">平均掌控力</span>
+              <span className="text-xl md:text-2xl font-bold text-accent">{weekStats.avgControl}%</span>
             </div>
             <div className="pt-3 border-t border-gray-100">
               <div className="flex justify-between text-xs text-gray-500 mb-2">
@@ -222,19 +214,19 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
         </div>
 
         {/* Month Stats */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-4">
-            <BookOpen className="w-5 h-5 text-primary" />
-            <h3 className="font-bold">本月統計</h3>
+            <BookOpen className="w-4 md:w-5 h-4 md:h-5 text-primary" />
+            <h3 className="font-bold text-sm md:text-base">本月統計</h3>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 text-sm">課題總數</span>
-              <span className="text-2xl font-bold text-text">{monthStats.total}</span>
+              <span className="text-gray-600 text-xs md:text-sm">課題總數</span>
+              <span className="text-xl md:text-2xl font-bold text-text">{monthStats.total}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 text-sm">平均掌控力</span>
-              <span className="text-2xl font-bold text-accent">{monthStats.avgControl}%</span>
+              <span className="text-gray-600 text-xs md:text-sm">平均掌控力</span>
+              <span className="text-xl md:text-2xl font-bold text-accent">{monthStats.avgControl}%</span>
             </div>
             <div className="pt-3 border-t border-gray-100">
               <div className="flex justify-between text-xs text-gray-500 mb-2">
@@ -256,20 +248,20 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
 
       {/* Top Worries */}
       {topWorries.length > 0 && (
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-2xl p-4 md:p-8 shadow-sm border border-gray-100">
           <div className="flex items-center gap-2 mb-6">
-            <Lightbulb className="w-5 h-5 text-primary" />
-            <h3 className="font-bold text-lg">今日主要困擾</h3>
+            <Lightbulb className="w-4 md:w-5 h-4 md:h-5 text-primary" />
+            <h3 className="font-bold text-base md:text-lg">今日主要困擾</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             {topWorries.map(([worry, count], idx) => (
-              <div key={worry} className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg p-4 border border-primary/10">
+              <div key={worry} className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg p-3 md:p-4 border border-primary/10">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">
+                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs md:text-sm font-bold text-primary shrink-0">
                     {idx + 1}
                   </div>
-                  <div className="flex-1">
-                    <div className="font-bold text-text mb-1">{worry}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-text mb-1 text-sm">{worry}</div>
                     <div className="text-xs text-gray-500">{count} 個課題</div>
                   </div>
                 </div>
@@ -280,15 +272,15 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
       )}
 
       {/* Today's Tasks with Journal */}
-      <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="font-bold text-lg">今日課題詳情</h3>
+      <div className="bg-white rounded-2xl p-4 md:p-8 shadow-sm border border-gray-100">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h3 className="font-bold text-base md:text-lg">今日課題詳情</h3>
           {todayTasks.length > 0 && (
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <select 
                 value={filterOwner || ''}
                 onChange={(e) => setFilterOwner(e.target.value || null)}
-                className="appearance-none bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="appearance-none w-full sm:w-auto bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 pr-8 text-xs md:text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">全部課題</option>
                 <option value={ResponsibilityOwner.Mine}>我的課題</option>
@@ -301,21 +293,21 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
         </div>
 
         {filteredTasks.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {filteredTasks.map((task) => (
-              <div key={task.id} className="border border-gray-100 rounded-lg p-6 hover:shadow-md transition-shadow">
+              <div key={task.id} className="border border-gray-100 rounded-lg p-4 md:p-6 hover:shadow-md transition-shadow">
                 {/* Task Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="font-bold text-text mb-1">
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-text mb-1 text-sm md:text-base break-words">
                       {Array.isArray(task.category) ? task.category.join(', ') : task.category}
                     </div>
-                    <div className="text-sm text-gray-500 mb-2">
+                    <div className="text-xs md:text-sm text-gray-500 mb-2 break-words">
                       {Array.isArray(task.worry) ? task.worry.join(', ') : task.worry}
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>掌控力：{task.controlLevel}%</span>
-                      <span className="px-2 py-1 bg-gray-100 rounded-full">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-gray-500">
+                      <span className="whitespace-nowrap">掌控力：{task.controlLevel}%</span>
+                      <span className="px-2 py-1 bg-gray-100 rounded-full whitespace-nowrap">
                         {task.owner === ResponsibilityOwner.Mine ? '我的課題' : 
                          task.owner === ResponsibilityOwner.Shared ? '共同課題' : '他人課題'}
                       </span>
@@ -331,12 +323,12 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
                         setEditingReflection(task.reflection || '');
                       }
                     }}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
                   >
                     {editingId === task.id ? (
-                      <X className="w-5 h-5 text-gray-400" />
+                      <X className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                     ) : (
-                      <Edit2 className="w-5 h-5 text-gray-400" />
+                      <Edit2 className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
                     )}
                   </button>
                 </div>

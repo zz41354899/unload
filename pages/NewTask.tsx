@@ -378,43 +378,43 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
     };
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-accent/5">
+      <div className="min-h-screen flex items-center justify-center p-4 md:p-6 bg-background">
         <div className="max-w-2xl w-full">
           {/* Success Card */}
-          <div className="bg-white rounded-3xl p-12 shadow-xl border border-gray-100">
+          <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-12 shadow-xl border border-gray-100">
             {/* Success Icon */}
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-6 md:mb-8">
               <div className="relative">
                 <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl"></div>
-                <CheckCircle className="w-20 h-20 text-primary relative" />
+                <CheckCircle className="w-16 md:w-20 h-16 md:h-20 text-primary relative" />
               </div>
             </div>
 
             {/* Success Message */}
-            <h1 className="text-3xl font-bold text-center mb-2 text-text">課題已成功建立</h1>
-            <p className="text-center text-gray-500 mb-12">你已經完成了第一步的釐清</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-center mb-1 md:mb-2 text-text">課題已成功建立</h1>
+            <p className="text-center text-gray-500 text-sm md:text-base mb-6 md:mb-12">你已經完成了第一步的釐清</p>
 
             {/* Quote Section */}
-            <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl p-8 mb-12 border border-primary/10">
-              <p className="text-center text-lg leading-relaxed text-text font-medium">
+            <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl md:rounded-2xl p-4 md:p-8 mb-6 md:mb-12 border border-primary/10">
+              <p className="text-center text-base md:text-lg leading-relaxed text-text font-medium">
                 "{resultQuote}"
               </p>
             </div>
 
             {/* Result Feedback */}
-            <div className="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-100">
-              <p className="text-sm text-blue-900 leading-relaxed">
+            <div className="bg-blue-50 rounded-lg md:rounded-xl p-4 md:p-6 mb-6 md:mb-8 border border-blue-100">
+              <p className="text-xs md:text-sm text-blue-900 leading-relaxed">
                 {getResultFeedback()}
               </p>
             </div>
 
             {/* Reflection Prompt */}
-            <div className="bg-gray-50 rounded-xl p-6 mb-12">
+            <div className="bg-gray-50 rounded-lg md:rounded-xl p-4 md:p-6 mb-8 md:mb-12">
               <div className="flex gap-2 mb-2">
                 <Brain className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-600"><strong>反思提示：</strong></p>
+                <p className="text-xs md:text-sm text-gray-600"><strong>反思提示：</strong></p>
               </div>
-              <p className="text-sm text-gray-700 leading-relaxed">
+              <p className="text-xs md:text-sm text-gray-700 leading-relaxed">
                 {control < 20 
                   ? '這個課題中，有哪些部分是你真正無法控制的？接納它，會帶給你平靜。'
                   : control < 60
@@ -424,19 +424,19 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2 md:gap-3">
               <button 
                 onClick={() => navigate('journal')}
-                className="w-full bg-primary text-white px-6 py-4 rounded-xl hover:bg-[#1e2b1e] transition-all font-medium flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                className="w-full bg-primary text-white px-4 md:px-6 py-3 md:py-4 rounded-lg md:rounded-xl hover:bg-[#1e2b1e] transition-all font-medium flex items-center justify-center gap-2 shadow-lg shadow-primary/20 text-sm md:text-base"
               >
-                <CheckCircle className="w-5 h-5" />
+                <CheckCircle className="w-4 md:w-5 h-4 md:h-5" />
                 前往日記記錄反思
               </button>
               <button 
                 onClick={() => navigate('dashboard')}
-                className="w-full bg-gray-100 text-text px-6 py-4 rounded-xl hover:bg-gray-200 transition-all font-medium flex items-center justify-center gap-2"
+                className="w-full bg-gray-100 text-text px-4 md:px-6 py-3 md:py-4 rounded-lg md:rounded-xl hover:bg-gray-200 transition-all font-medium flex items-center justify-center gap-2 text-sm md:text-base"
               >
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 md:w-5 h-4 md:h-5" />
                 返回儀錶板
               </button>
             </div>

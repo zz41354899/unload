@@ -24,7 +24,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, navigate 
   
   const navItems = [
     { id: 'dashboard', label: '儀錶板', icon: LayoutDashboard },
-    { id: 'journal', label: '摘要日記', icon: BookOpen },
+    { id: 'journal', label: '反思日記', icon: BookOpen },
     { id: 'history', label: '歷史記錄', icon: History },
   ];
 
