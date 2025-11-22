@@ -35,7 +35,7 @@ export interface Task {
   worry: string | string[];    // Support single or multiple worries
   owner: ResponsibilityOwner;
   controlLevel: number;
-  reflection?: string; // 反思筆記
+  reflection?: string; // 反思日記
 }
 
 export interface User {

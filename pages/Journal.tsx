@@ -334,7 +334,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
                 {editingId === task.id ? (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">反思筆記</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">反思日記</label>
                       <textarea
                         value={editingReflection}
                         onChange={(e) => setEditingReflection(e.target.value)}
@@ -355,7 +355,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
                   <div className="space-y-3 pt-4 border-t border-gray-100">
                     {task.reflection && (
                       <div>
-                        <div className="text-xs font-medium text-gray-500 mb-1">反思筆記</div>
+                        <div className="text-xs font-medium text-gray-500 mb-1">反思日記</div>
                         <div className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">{task.reflection}</div>
                       </div>
                     )}
