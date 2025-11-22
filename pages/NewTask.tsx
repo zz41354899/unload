@@ -369,11 +369,11 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
       const worryStr = Array.isArray(worries) ? worries.join('、') : worries;
       
       if (control < 20) {
-        return `你識別出「${categoryStr}」這個課題，主要擔憂是「${worryStr}」。由於控制力較低（${control}%），這表示許多因素超出你的掌控。接納這些不可控的部分，會幫助你減少不必要的焦慮。`;
+        return `你識別出「${categoryStr}」這個課題，主要擔憂是「${worryStr}」。控制力在${control}%，這表示許多因素超出你的掌控。接納這些不可控的部分，會幫助你減少不必要的焦慮。`;
       } else if (control < 60) {
         return `你識別出「${categoryStr}」這個課題，主要擔憂是「${worryStr}」。控制力在${control}%，這是一個共同課題。關鍵是找到你能影響的部分，並與相關人員進行有效溝通。`;
       } else {
-        return `你識別出「${categoryStr}」這個課題，主要擔憂是「${worryStr}」。控制力達到${control}%，這主要是你的課題。你已經掌握了大部分的主動權，現在是時候制定具體的行動計畫了。`;
+        return `你識別出「${categoryStr}」這個課題，主要擔憂是「${worryStr}」。控制力達到${control}%，這主要是你的課題。你已經掌握了大部分的主導權，現在是時候制定具體的行動計畫了。`;
       }
     };
 
