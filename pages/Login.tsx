@@ -24,6 +24,9 @@ export const Login: React.FC<LoginProps> = ({ navigate }) => {
         {/* Logo Corner */}
         <a href="https://unload.zeabur.app/" className="absolute top-8 left-8 flex items-center gap-2">
             <img src="/logo.svg" alt="Unload Logo" className="w-[140px] h-10 object-contain" />
+            <span className="inline-flex items-center rounded-full border border-gray-200 bg-white/80 px-2 py-0.5 text-[11px] font-medium text-gray-600 shadow-sm backdrop-blur">
+                預覽版
+            </span>
         </a>
 
         {/* Main Content */}
@@ -55,8 +58,8 @@ export const Login: React.FC<LoginProps> = ({ navigate }) => {
                     )}
                 </button>
 
-                <p className="text-xs text-gray-500 mt-8">
-                    開始之前，請先了解我們的 <span className="underline cursor-pointer">服務條款</span> 與 <span className="underline cursor-pointer">隱私權政策</span>。
+                <p className="text-xs text-gray-500">
+                    此為預覽測試版本，按下「馬上試用」即可進入體驗，無須登入。
                 </p>
             </div>
         </div>
