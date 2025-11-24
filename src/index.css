@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@theme {
+    --color-background: #F9F8F4;
+    --color-primary: #2C3E2C;
+    --color-text: #1E2A22;
+    --color-accent: #1ABC9C;
+    --color-muted: #9CA3AF;
+    --color-surface: #FFFFFF;
+
+    --font-sans: Lato, "Noto Sans TC", system-ui, sans-serif;
+
+    --animate-fade-in: fadeIn 0.5s ease-out forwards;
+    --animate-slide-up: slideUp 0.4s ease-out forwards;
+    --animate-scale-in: scaleIn 0.2s ease-out forwards;
+
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideUp {
+        0% {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes scaleIn {
+        0% {
+            transform: scale(0.95);
+            opacity: 0;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+}
+
+/* Base styles */
+body {
+    @apply bg-background text-text;
+}
+
+button,
+[role="button"] {
+    cursor: pointer;
+}
+
+/* Custom Slider Styling */
+input[type=range] {
+    appearance: none;
+    background: transparent;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    appearance: none;
+}
+
+input[type=range]:focus {
+    outline: none;
+}
