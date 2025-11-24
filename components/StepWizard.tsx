@@ -156,7 +156,7 @@ export const SelectionGrid: React.FC<SelectionGridProps> = ({ options, selected,
 };
 
 export const MultiSelectGrid: React.FC<MultiSelectGridProps> = ({ options, selected, onSelect }) => {
-  const MAX_SELECTIONS = 2;
+  const MAX_SELECTIONS = 4;
   const { t } = useTranslation();
 
   const toggleOption = (option: string) => {

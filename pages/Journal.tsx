@@ -87,8 +87,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
       });
     });
     return Object.entries(worryCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 3);
+      .sort((a, b) => b[1] - a[1]);
   };
 
   const topWorries = getTopWorries();

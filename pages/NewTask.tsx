@@ -429,7 +429,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
             <div className="flex flex-col gap-2 md:gap-3">
               <button 
                 onClick={() => {
-                  navigate('journal');
+
                 }}
                 className="w-full bg-primary text-white px-4 md:px-6 py-3 md:py-4 rounded-lg md:rounded-xl hover:bg-[#1e2b1e] transition-all font-medium flex items-center justify-center gap-2 shadow-lg shadow-primary/20 text-sm md:text-base"
               >

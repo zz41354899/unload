@@ -39,7 +39,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
     
     return Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 3)
       .map(([name, count]) => ({ name, count }));
   };
 
