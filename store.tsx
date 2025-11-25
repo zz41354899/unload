@@ -69,12 +69,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addTask = (taskData: Omit<Task, 'id' | 'date'>) => {
+    const id = Date.now().toString();
     const newTask: Task = {
       ...taskData,
-      id: Date.now().toString(),
+      id,
       date: new Date().toISOString(),
     };
     setTasks(prev => [newTask, ...prev]);
+    return id;
   };
 
   const deleteTask = (id: string) => {

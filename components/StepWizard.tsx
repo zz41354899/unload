@@ -14,6 +14,7 @@ interface WizardLayoutProps {
   showNext?: boolean;
   currentStep: number;
   totalSteps?: number;
+  lastSaved?: Date | null;
 }
 
 export const WizardLayout: React.FC<WizardLayoutProps> = ({
@@ -26,20 +27,32 @@ export const WizardLayout: React.FC<WizardLayoutProps> = ({
   nextLabel,
   showNext = true,
   currentStep,
-  totalSteps = 4
+  totalSteps = 4,
+  lastSaved
 }) => {
   const { t } = useTranslation();
   const resolvedNextLabel = nextLabel ?? t('wizard.next');
 
   return (
-    <div className="max-w-3xl mx-auto mt-4">
-      <button 
-        onClick={onBack}
-        className="flex items-center gap-2 text-gray-500 hover:text-text mb-6 transition-colors text-sm"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span>{t('wizard.back')}</span>
-      </button>
+    <div className="max-w-3xl mx-auto mt-4 relative">
+      <div className="flex justify-between items-center mb-6">
+        <button 
+          onClick={onBack}
+          className="flex items-center gap-2 text-gray-500 hover:text-text transition-colors text-sm"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>{t('wizard.back')}</span>
+        </button>
+
+        {lastSaved && (
+          <div className="text-xs text-gray-400 flex items-center gap-1.5 animate-pulse">
+             <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+             <span>
+               {t('wizard.savedAt', '已自動保存')} {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+             </span>
+          </div>
+        )}
+      </div>
 
       {/* Progress Bar */}
       <div className="w-full h-1.5 flex gap-3 mb-10">
@@ -156,16 +169,13 @@ export const SelectionGrid: React.FC<SelectionGridProps> = ({ options, selected,
 };
 
 export const MultiSelectGrid: React.FC<MultiSelectGridProps> = ({ options, selected, onSelect }) => {
-  const MAX_SELECTIONS = 4;
   const { t } = useTranslation();
 
   const toggleOption = (option: string) => {
     if (selected.includes(option)) {
       onSelect(selected.filter(item => item !== option));
     } else {
-      if (selected.length < MAX_SELECTIONS) {
-        onSelect([...selected, option]);
-      }
+      onSelect([...selected, option]);
     }
   };
 
@@ -197,7 +207,6 @@ export const MultiSelectGrid: React.FC<MultiSelectGridProps> = ({ options, selec
 
   const getHint = (option: string) => {
     switch (option) {
-      // 類別（Step1）提示
       case TaskCategory.Interview: return t('taskCategory.Interview_hint');
       case TaskCategory.CareerPlanning: return t('taskCategory.CareerPlanning_hint');
       case TaskCategory.SelfConfusion: return t('taskCategory.SelfConfusion_hint');
@@ -206,7 +215,6 @@ export const MultiSelectGrid: React.FC<MultiSelectGridProps> = ({ options, selec
       case TaskCategory.FinancialPressure: return t('taskCategory.FinancialPressure_hint');
       case TaskCategory.MarketChange: return t('taskCategory.MarketChange_hint');
       case TaskCategory.Other: return t('taskCategory.Other_hint');
-      // 擔憂（Step2）提示
       case TaskWorry.Performance: return t('taskWorry.Performance_hint');
       case TaskWorry.Rejection: return t('taskWorry.Rejection_hint');
       case TaskWorry.OthersThoughts: return t('taskWorry.OthersThoughts_hint');
@@ -222,23 +230,15 @@ export const MultiSelectGrid: React.FC<MultiSelectGridProps> = ({ options, selec
 
   return (
     <div>
-      {selected.length >= MAX_SELECTIONS && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex gap-2">
-          <span className="text-sm text-amber-800">{t('wizard.maxSelections', { count: MAX_SELECTIONS })}</span>
-        </div>
-      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {options.map((option) => (
           <button
             key={option}
             onClick={() => toggleOption(option)}
-            disabled={!selected.includes(option) && selected.length >= MAX_SELECTIONS}
             className={`
               p-5 text-left rounded-lg border transition-all duration-200 flex items-center
               ${selected.includes(option)
                 ? 'border-accent text-accent bg-accent/5 font-medium ring-1 ring-accent' 
-                : selected.length >= MAX_SELECTIONS
-                ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed opacity-50'
                 : 'border-gray-200 hover:border-gray-300 bg-white text-gray-600'}
             `}
           >

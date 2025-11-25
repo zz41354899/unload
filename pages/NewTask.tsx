@@ -17,15 +17,16 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
   const [step, setStep] = useState(1);
   const [resultQuote, setResultQuote] = useState<string>('');
   const { t } = useTranslation();
-  
+
   const [categories, setCategories] = useState<string[]>([]);
   const [customCategory, setCustomCategory] = useState<string>('');
-  
+
   const [worries, setWorries] = useState<string[]>([]);
   const [customWorry, setCustomWorry] = useState<string>('');
-  
+
   const [owner, setOwner] = useState<string | null>(null);
   const [control, setControl] = useState<number>(0);
+  const [reflectionNote, setReflectionNote] = useState<string>('');
   const sliderRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const pendingValueRef = useRef<number>(0);
@@ -34,7 +35,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
   // 處理滑桿拖曳 - 使用 requestAnimationFrame 優化性能
   const handleSliderChange = (clientX: number) => {
     if (!sliderRef.current) return;
-    
+
     const rect = sliderRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
     const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
@@ -44,7 +45,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
     }
-    
+
     rafRef.current = requestAnimationFrame(() => {
       setControl(pendingValueRef.current);
       rafRef.current = null;
@@ -106,7 +107,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
       finalCategories = finalCategories.filter(c => c !== TaskCategory.Other);
       finalCategories.push(customCategory.trim());
     }
-    
+
     let finalWorries = [...worries];
     if (worries.includes(TaskWorry.Other) && customWorry.trim()) {
       finalWorries = finalWorries.filter(w => w !== TaskWorry.Other);
@@ -116,7 +117,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
     if (finalCategories.length > 0 && finalWorries.length > 0 && owner) {
       // 獲取控制力建議
       const suggestion = getControlLevelSuggestion(finalCategories, finalWorries, owner);
-      
+
       // 檢查控制力是否符合建議
       if (!isControlLevelValid(control, suggestion)) {
         showToast(t('newTask.error.controlInvalid'), 'error');
@@ -127,7 +128,8 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
         category: finalCategories.length === 1 ? finalCategories[0] : finalCategories,
         worry: finalWorries.length === 1 ? finalWorries[0] : finalWorries,
         owner: owner as ResponsibilityOwner,
-        controlLevel: control
+        controlLevel: control,
+        reflection: reflectionNote || undefined,
       });
       // 根據掌控力獲取語錄
       const quote = getQuoteByControlLevel(control);
@@ -151,26 +153,26 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
         currentStep={1}
       >
         <div key={step}>
-            <MultiSelectGrid
+          <MultiSelectGrid
             options={Object.values(TaskCategory)}
             selected={categories}
             onSelect={(vals) => {
-                setCategories(vals);
-                if (!vals.includes(TaskCategory.Other)) setCustomCategory('');
+              setCategories(vals);
+              if (!vals.includes(TaskCategory.Other)) setCustomCategory('');
             }}
-            />
-            {isOtherSelected && (
-                <div>
-                    <input
-                        type="text"
-                        placeholder={t('newTask.step1.customPlaceholder')}
-                        value={customCategory}
-                        onChange={(e) => setCustomCategory(e.target.value)}
-                        className="w-full mt-4 p-4 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all bg-white text-text placeholder-gray-300"
-                        autoFocus
-                    />
-                </div>
-            )}
+          />
+          {isOtherSelected && (
+            <div>
+              <input
+                type="text"
+                placeholder={t('newTask.step1.customPlaceholder')}
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                className="w-full mt-4 p-4 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all bg-white text-text placeholder-gray-300"
+                autoFocus
+              />
+            </div>
+          )}
         </div>
       </WizardLayout>
     );
@@ -191,26 +193,26 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
         currentStep={2}
       >
         <div key={step}>
-            <MultiSelectGrid
+          <MultiSelectGrid
             options={Object.values(TaskWorry)}
             selected={worries}
             onSelect={(vals) => {
-                setWorries(vals);
-                if (!vals.includes(TaskWorry.Other)) setCustomWorry('');
+              setWorries(vals);
+              if (!vals.includes(TaskWorry.Other)) setCustomWorry('');
             }}
-            />
-            {isOtherSelected && (
-                <div>
-                    <input
-                        type="text"
-                        placeholder={t('newTask.step2.customPlaceholder')}
-                        value={customWorry}
-                        onChange={(e) => setCustomWorry(e.target.value)}
-                        className="w-full mt-4 p-4 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all bg-white text-text placeholder-gray-300"
-                        autoFocus
-                    />
-                </div>
-            )}
+          />
+          {isOtherSelected && (
+            <div>
+              <input
+                type="text"
+                placeholder={t('newTask.step2.customPlaceholder')}
+                value={customWorry}
+                onChange={(e) => setCustomWorry(e.target.value)}
+                className="w-full mt-4 p-4 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all bg-white text-text placeholder-gray-300"
+                autoFocus
+              />
+            </div>
+          )}
         </div>
       </WizardLayout>
     );
@@ -228,11 +230,11 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
         currentStep={3}
       >
         <div key={step}>
-            <SelectionList
+          <SelectionList
             options={Object.values(ResponsibilityOwner)}
             selected={owner}
             onSelect={setOwner}
-            />
+          />
         </div>
       </WizardLayout>
     );
@@ -256,9 +258,9 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
         currentStep={4}
       >
         <div key={step}>
-            <div className="py-12 px-4">
+          <div className="py-12 px-4">
             <div className="text-center text-6xl font-normal mb-12 text-text font-sans">
-                {control}%
+              {control}%
             </div>
 
             {/* 建議範圍提示 */}
@@ -284,7 +286,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
                 ))}
               </div>
 
-              <div 
+              <div
                 ref={sliderRef}
                 className="relative h-10 flex items-center cursor-pointer group select-none"
                 onClick={(e) => {
@@ -300,64 +302,79 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
                   }
                 }}
               >
-                      {/* 刻度線 */}
-                      <div className="absolute left-0 right-0 h-2 flex pointer-events-none">
-                        {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((mark) => (
-                          <div
-                            key={mark}
-                            className="absolute w-px h-1 bg-gray-300"
-                            style={{ left: `${mark}%`, transform: 'translateX(-50%)' }}
-                          />
-                        ))}
-                      </div>
+                {/* 刻度線 */}
+                <div className="absolute left-0 right-0 h-2 flex pointer-events-none">
+                  {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((mark) => (
+                    <div
+                      key={mark}
+                      className="absolute w-px h-1 bg-gray-300"
+                      style={{ left: `${mark}%`, transform: 'translateX(-50%)' }}
+                    />
+                  ))}
+                </div>
 
-                      {/* Visual Background Track (視覺軌道) */}
-                      <div className="absolute left-0 right-0 h-2 bg-gray-200 rounded-full pointer-events-none">
-                          <div 
-                              className="h-full bg-accent rounded-full"
-                              style={{ width: `${control}%` }}
-                          ></div>
-                      </div>
-                      
-                      {/* Custom Thumb Visual (跟隨數值的視覺圓點) */}
-                      <div 
-                          className="absolute top-1/2 -translate-y-1/2 w-7 h-7 bg-accent rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110"
-                          style={{ 
-                              left: `calc(${control}% - 14px)`,
-                              transition: isDraggingRef.current ? 'none' : 'all 75ms ease-out'
-                          }}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleMouseDown();
-                          }}
-                          onTouchStart={(e) => {
-                            e.stopPropagation();
-                            if (e.touches.length > 0) {
-                              handleMouseDown();
-                              handleSliderChange(e.touches[0].clientX);
-                            }
-                          }}
-                      >
-                          <div className="w-3 h-3 bg-white rounded-full opacity-40"></div>
-                      </div>
+                {/* Visual Background Track (視覺軌道) */}
+                <div className="absolute left-0 right-0 h-2 bg-gray-200 rounded-full pointer-events-none">
+                  <div
+                    className="h-full bg-accent rounded-full"
+                    style={{ width: `${control}%` }}
+                  ></div>
+                </div>
+
+                {/* Custom Thumb Visual (跟隨數值的視覺圓點) */}
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 w-7 h-7 bg-accent rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110"
+                  style={{
+                    left: `calc(${control}% - 14px)`,
+                    transition: isDraggingRef.current ? 'none' : 'all 75ms ease-out'
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleMouseDown();
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                    if (e.touches.length > 0) {
+                      handleMouseDown();
+                      handleSliderChange(e.touches[0].clientX);
+                    }
+                  }}
+                >
+                  <div className="w-3 h-3 bg-white rounded-full opacity-40"></div>
+                </div>
               </div>
             </div>
 
             <div className="flex justify-between text-sm text-gray-600 mb-12">
-                <span>{t('newTask.step4.scaleMin')}</span>
-                <span>{t('newTask.step4.scaleMax')}</span>
+              <span>{t('newTask.step4.scaleMin')}</span>
+              <span>{t('newTask.step4.scaleMax')}</span>
             </div>
 
-            <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm">
+            <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm space-y-4">
+              <div>
                 <h4 className="font-bold mb-2 text-sm">{t('newTask.step4.hintTitle')}</h4>
                 <ul className="list-disc pl-5 text-sm text-gray-600 space-y-2">
-                    <li>{t('newTask.step4.hint1')}</li>
-                    <li>{t('newTask.step4.hint2')}</li>
-                    <li>{t('newTask.step4.hint3')}</li>
+                  <li>{t('newTask.step4.hint1')}</li>
+                  <li>{t('newTask.step4.hint2')}</li>
+                  <li>{t('newTask.step4.hint3')}</li>
                 </ul>
+              </div>
+
+              <div className="pt-3 border-t border-gray-100 space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  {t('newTask.step4.reflectionLabel')}
+                </label>
+                <textarea
+                  value={reflectionNote}
+                  onChange={(e) => setReflectionNote(e.target.value)}
+                  placeholder={t('newTask.step4.reflectionPlaceholder')}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm resize-none"
+                  rows={3}
+                />
+              </div>
             </div>
-            </div>
+          </div>
         </div>
       </WizardLayout>
     );
@@ -375,7 +392,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
       );
       const categoryStr = categoryLabels.filter(Boolean).join('\u3001');
       const worryStr = worryLabels.filter(Boolean).join('\u3001');
-      
+
       if (control < 20) {
         return t('newTask.result.feedback.low', { category: categoryStr, worry: worryStr, control });
       } else if (control < 60) {
@@ -423,17 +440,17 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
                 <p className="text-xs md:text-sm text-gray-600"><strong>{t('newTask.result.reflectionTitle')}</strong></p>
               </div>
               <p className="text-xs md:text-sm text-gray-700 leading-relaxed">
-                {control < 20 
+                {control < 20
                   ? t('newTask.result.reflection.low')
                   : control < 60
-                  ? t('newTask.result.reflection.mid')
-                  : t('newTask.result.reflection.high')}
+                    ? t('newTask.result.reflection.mid')
+                    : t('newTask.result.reflection.high')}
               </p>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-2 md:gap-3">
-              <button 
+              <button
                 onClick={() => {
                   navigate('journal');
                 }}
@@ -442,7 +459,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
                 <CheckCircle className="w-4 md:w-5 h-4 md:h-5" />
                 {t('newTask.result.toJournal')}
               </button>
-              <button 
+              <button
                 onClick={() => {
                   navigate('dashboard');
                 }}
