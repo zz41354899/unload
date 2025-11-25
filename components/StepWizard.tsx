@@ -14,7 +14,6 @@ interface WizardLayoutProps {
   showNext?: boolean;
   currentStep: number;
   totalSteps?: number;
-  lastSaved?: Date | null;
 }
 
 export const WizardLayout: React.FC<WizardLayoutProps> = ({
@@ -27,8 +26,7 @@ export const WizardLayout: React.FC<WizardLayoutProps> = ({
   nextLabel,
   showNext = true,
   currentStep,
-  totalSteps = 4,
-  lastSaved
+  totalSteps = 4
 }) => {
   const { t } = useTranslation();
   const resolvedNextLabel = nextLabel ?? t('wizard.next');
@@ -43,15 +41,6 @@ export const WizardLayout: React.FC<WizardLayoutProps> = ({
           <ArrowLeft className="w-4 h-4" />
           <span>{t('wizard.back')}</span>
         </button>
-
-        {lastSaved && (
-          <div className="text-xs text-gray-400 flex items-center gap-1.5 animate-pulse">
-             <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-             <span>
-               {t('wizard.savedAt', '已自動保存')} {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-             </span>
-          </div>
-        )}
       </div>
 
       {/* Progress Bar */}
