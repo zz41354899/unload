@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store';
-import { Task, ResponsibilityOwner, TaskCategory, TaskWorry } from '../types';
+import { Task, ResponsibilityOwner, TaskCategory, TaskWorry, TaskPolarity } from '../types';
 import { Calendar, BookOpen, Lightbulb, TrendingUp, ChevronDown, Edit2, Save, X, Sparkles } from 'lucide-react';
 import { getDailyQuote } from '../lib/quotes';
 
@@ -16,6 +16,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingReflection, setEditingReflection] = useState<string>('');
   const [filterOwner, setFilterOwner] = useState<string | null>(null);
+  const [polarityFilter, setPolarityFilter] = useState<'all' | 'positive' | 'negative'>('all');
 
   // 獲取選定日期的任務
   const getTasksByDate = (dateStr: string) => {
@@ -26,7 +27,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
   const getDateRangeStats = (startDate: string, endDate: string) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
+
     const rangedTasks = tasks.filter(t => {
       const taskDate = new Date(t.date);
       return taskDate >= start && taskDate <= end;
@@ -37,7 +38,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
       mine: rangedTasks.filter(t => t.owner === ResponsibilityOwner.Mine).length,
       theirs: rangedTasks.filter(t => t.owner === ResponsibilityOwner.Theirs).length,
       shared: rangedTasks.filter(t => t.owner === ResponsibilityOwner.Shared).length,
-      avgControl: rangedTasks.length > 0 
+      avgControl: rangedTasks.length > 0
         ? Math.round(rangedTasks.reduce((sum, t) => sum + t.controlLevel, 0) / rangedTasks.length)
         : 0
     };
@@ -50,7 +51,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
     weekStart.setDate(today.getDate() - today.getDay());
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
-    
+
     return getDateRangeStats(
       weekStart.toISOString().split('T')[0],
       weekEnd.toISOString().split('T')[0]
@@ -62,61 +63,132 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
     const today = new Date(selectedDate);
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
     const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    
+
     return getDateRangeStats(
       monthStart.toISOString().split('T')[0],
       monthEnd.toISOString().split('T')[0]
     );
   };
 
-  const todayTasks = getTasksByDate(selectedDate);
+  const todayTasksRaw = getTasksByDate(selectedDate);
+  const todayTasks = polarityFilter === 'all'
+    ? todayTasksRaw
+    : todayTasksRaw.filter(t => (t.polarity ?? TaskPolarity.Negative) === polarityFilter);
+  const allPositiveToday =
+    todayTasks.length > 0 &&
+    todayTasks.every(t => (t.polarity ?? TaskPolarity.Negative) === TaskPolarity.Positive);
   const weekStats = getWeekStats();
   const monthStats = getMonthStats();
 
-  const filteredTasks = filterOwner 
+  const filteredTasks = filterOwner
     ? todayTasks.filter(t => t.owner === filterOwner)
     : todayTasks;
 
-  // 計算主要困擾
-  const getTopWorries = () => {
-    const worryCounts: Record<string, number> = {};
-    todayTasks.forEach(t => {
-      const worries = Array.isArray(t.worry) ? t.worry : [t.worry];
-      worries.forEach(w => {
-        worryCounts[w] = (worryCounts[w] || 0) + 1;
+  // 計算主要困擾 / 亮點
+  interface TopWorryItem {
+    worry: string;
+    count: number;
+    isPositive: boolean;
+  }
+
+  const getTopWorries = (): TopWorryItem[] => {
+    const baseTasks = getTasksByDate(selectedDate);
+
+    const positiveTasks = baseTasks.filter(t => (t.polarity ?? TaskPolarity.Negative) === TaskPolarity.Positive);
+    const negativeTasks = baseTasks.filter(t => (t.polarity ?? TaskPolarity.Negative) === TaskPolarity.Negative);
+
+    const buildTop = (source: typeof tasks): [string, number] | null => {
+      if (source.length === 0) return null;
+      const counts: Record<string, number> = {};
+      source.forEach(t => {
+        const worries = Array.isArray(t.worry) ? t.worry : [t.worry];
+        worries.forEach(w => {
+          counts[w] = (counts[w] || 0) + 1;
+        });
       });
-    });
-    return Object.entries(worryCounts)
-      .sort((a, b) => b[1] - a[1]);
+      const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+      return top ?? null;
+    };
+
+    const items: TopWorryItem[] = [];
+
+    // 全部事件：同時列出正向亮點與負向擔憂
+    if (polarityFilter === 'all') {
+      const posTop = buildTop(positiveTasks);
+      const negTop = buildTop(negativeTasks);
+
+      if (posTop) {
+        items.push({ worry: posTop[0], count: posTop[1], isPositive: true });
+      }
+      if (negTop) {
+        items.push({ worry: negTop[0], count: negTop[1], isPositive: false });
+      }
+    } else {
+      const source = polarityFilter === 'positive' ? positiveTasks : negativeTasks;
+      const top = buildTop(source);
+      if (top) {
+        items.push({ worry: top[0], count: top[1], isPositive: polarityFilter === 'positive' });
+      }
+    }
+
+    return items;
   };
 
   const topWorries = getTopWorries();
 
-  const getCategoryLabel = (cat: string) => {
+  const getCategoryLabel = (cat: string, usePositive: boolean = false) => {
+    const keyFor = (suffix: string) => {
+      if (usePositive) {
+        const positiveKey = `taskCategoryPositive.${suffix}`;
+        const positiveLabel = t(positiveKey);
+        if (positiveLabel !== positiveKey) {
+          return positiveLabel;
+        }
+      }
+
+      const defaultKey = `taskCategory.${suffix}`;
+      const defaultLabel = t(defaultKey);
+      return defaultLabel !== defaultKey ? defaultLabel : suffix;
+    };
+
     switch (cat) {
-      case TaskCategory.Interview: return t('taskCategory.Interview');
-      case TaskCategory.CareerPlanning: return t('taskCategory.CareerPlanning');
-      case TaskCategory.SelfConfusion: return t('taskCategory.SelfConfusion');
-      case TaskCategory.ProgressAnxiety: return t('taskCategory.ProgressAnxiety');
-      case TaskCategory.ExpectationPressure: return t('taskCategory.ExpectationPressure');
-      case TaskCategory.FinancialPressure: return t('taskCategory.FinancialPressure');
-      case TaskCategory.MarketChange: return t('taskCategory.MarketChange');
-      case TaskCategory.Other: return t('taskCategory.Other');
+      case TaskCategory.Interview: return keyFor('Interview');
+      case TaskCategory.CareerPlanning: return keyFor('CareerPlanning');
+      case TaskCategory.SelfConfusion: return keyFor('SelfConfusion');
+      case TaskCategory.ProgressAnxiety: return keyFor('ProgressAnxiety');
+      case TaskCategory.ExpectationPressure: return keyFor('ExpectationPressure');
+      case TaskCategory.FinancialPressure: return keyFor('FinancialPressure');
+      case TaskCategory.MarketChange: return keyFor('MarketChange');
+      case TaskCategory.Other: return keyFor('Other');
       default: return cat;
     }
   };
 
-  const getWorryLabel = (w: string) => {
+  const getWorryLabel = (w: string, usePositive: boolean = false) => {
+    const keyFor = (suffix: string) => {
+      if (usePositive) {
+        const positiveKey = `taskWorryPositive.${suffix}`;
+        const positiveLabel = t(positiveKey);
+        if (positiveLabel !== positiveKey) {
+          return positiveLabel;
+        }
+      }
+
+      const defaultKey = `taskWorry.${suffix}`;
+      const defaultLabel = t(defaultKey);
+      return defaultLabel !== defaultKey ? defaultLabel : suffix;
+    };
+
     switch (w) {
-      case TaskWorry.Performance: return t('taskWorry.Performance');
-      case TaskWorry.Rejection: return t('taskWorry.Rejection');
-      case TaskWorry.OthersThoughts: return t('taskWorry.OthersThoughts');
-      case TaskWorry.Pressure: return t('taskWorry.Pressure');
-      case TaskWorry.Comparison: return t('taskWorry.Comparison');
-      case TaskWorry.TimeStress: return t('taskWorry.TimeStress');
-      case TaskWorry.Decision: return t('taskWorry.Decision');
-      case TaskWorry.Uncertainty: return t('taskWorry.Uncertainty');
-      case TaskWorry.Other: return t('taskWorry.Other');
+      case TaskWorry.Performance: return keyFor('Performance');
+      case TaskWorry.Rejection: return keyFor('Rejection');
+      case TaskWorry.OthersThoughts: return keyFor('OthersThoughts');
+      case TaskWorry.Pressure: return keyFor('Pressure');
+      case TaskWorry.Comparison: return keyFor('Comparison');
+      case TaskWorry.TimeStress: return keyFor('TimeStress');
+      case TaskWorry.Decision: return keyFor('Decision');
+      case TaskWorry.Uncertainty: return keyFor('Uncertainty');
+      case TaskWorry.Other: return keyFor('Other');
       default: return w;
     }
   };
@@ -140,7 +212,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 pb-12 px-4 md:px-0">
-      
+
       {/* Header */}
       <div className="bg-white rounded-2xl p-6 md:p-12 shadow-sm border border-gray-100">
         <div className="mb-6">
@@ -150,18 +222,18 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
 
         {/* Date Picker */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
-          <input 
+          <input
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
             className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
           />
           <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
-            {new Date(selectedDate).toLocaleDateString(i18n.language, { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            {new Date(selectedDate).toLocaleDateString(i18n.language, {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
             })}
           </span>
         </div>
@@ -196,7 +268,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
             <div className="flex justify-between items-center">
               <span className="text-gray-600 text-xs md:text-sm">{t('journal.stats.today.avgControl')}</span>
               <span className="text-xl md:text-2xl font-bold text-accent">
-                {todayTasks.length > 0 
+                {todayTasks.length > 0
                   ? Math.round(todayTasks.reduce((sum, t) => sum + t.controlLevel, 0) / todayTasks.length)
                   : 0}%
               </span>
@@ -286,20 +358,40 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
       {/* Top Worries */}
       {topWorries.length > 0 && (
         <div className="bg-white rounded-2xl p-4 md:p-8 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-2 mb-6">
-            <Lightbulb className="w-4 md:w-5 h-4 md:h-5 text-primary" />
-            <h3 className="font-bold text-base md:text-lg">{t('journal.topWorries.title')}</h3>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 md:mb-6">
+            <div className="flex items-center gap-2">
+              <Lightbulb className="w-4 md:w-5 h-4 md:h-5 text-primary" />
+              <h3 className="font-bold text-base md:text-lg">
+                {polarityFilter === 'positive'
+                  ? t('journal.topWorries.title.positive')
+                  : polarityFilter === 'negative'
+                    ? t('journal.topWorries.title.negative')
+                    : t('journal.topWorries.title.all')}
+              </h3>
+            </div>
+            <div className="relative w-full sm:w-auto">
+              <select
+                value={polarityFilter}
+                onChange={(e) => setPolarityFilter(e.target.value as 'all' | 'positive' | 'negative')}
+                className="appearance-none w-full sm:w-auto bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 pr-7 text-xs md:text-sm text-gray-700 cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
+                <option value="all">{t('polarity.all')}</option>
+                <option value="positive">{t('polarity.positive')}</option>
+                <option value="negative">{t('polarity.negative')}</option>
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-            {topWorries.map(([worry, count], idx) => (
-              <div key={worry} className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg p-3 md:p-4 border border-primary/10">
+            {topWorries.map((item, idx) => (
+              <div key={`${item.worry}-${item.isPositive ? 'pos' : 'neg'}`} className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-lg p-3 md:p-4 border border-primary/10">
                 <div className="flex items-start gap-3">
                   <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs md:text-sm font-bold text-primary shrink-0">
                     {idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-text mb-1 text-sm">{getWorryLabel(worry as string)}</div>
-                    <div className="text-xs text-gray-500">{t('journal.topWorries.countLabel', { count })}</div>
+                    <div className="font-bold text-text mb-1 text-sm">{getWorryLabel(item.worry, item.isPositive)}</div>
+                    <div className="text-xs text-gray-500">{t('journal.topWorries.countLabel', { count: item.count })}</div>
                   </div>
                 </div>
               </div>
@@ -314,7 +406,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
           <h3 className="font-bold text-base md:text-lg">{t('journal.details.title')}</h3>
           {todayTasks.length > 0 && (
             <div className="relative w-full sm:w-auto">
-              <select 
+              <select
                 value={filterOwner || ''}
                 onChange={(e) => setFilterOwner(e.target.value || null)}
                 className="appearance-none w-full sm:w-auto bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 pr-8 text-xs md:text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -338,13 +430,13 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-text mb-1 text-sm md:text-base break-words">
                       {Array.isArray(task.category)
-                        ? task.category.map(getCategoryLabel).join(', ')
-                        : getCategoryLabel(task.category as string)}
+                        ? task.category.map((cat) => getCategoryLabel(cat, (task.polarity ?? TaskPolarity.Negative) === TaskPolarity.Positive)).join(', ')
+                        : getCategoryLabel(task.category as string, (task.polarity ?? TaskPolarity.Negative) === TaskPolarity.Positive)}
                     </div>
                     <div className="text-xs md:text-sm text-gray-500 mb-2 break-words">
                       {Array.isArray(task.worry)
-                        ? task.worry.map(getWorryLabel).join(', ')
-                        : getWorryLabel(task.worry as string)}
+                        ? task.worry.map((w) => getWorryLabel(w, (task.polarity ?? TaskPolarity.Negative) === TaskPolarity.Positive)).join(', ')
+                        : getWorryLabel(task.worry as string, (task.polarity ?? TaskPolarity.Negative) === TaskPolarity.Positive)}
                     </div>
                     <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-gray-500">
                       <span className="whitespace-nowrap">{t('journal.task.control', { value: task.controlLevel })}</span>

@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { WizardLayout, SelectionGrid, SelectionList, MultiSelectGrid } from '../components/StepWizard';
-import { TaskCategory, TaskWorry, ResponsibilityOwner } from '../types';
+import { TaskCategory, TaskWorry, ResponsibilityOwner, TaskPolarity } from '../types';
 import { useAppStore } from '../store';
 import { getQuoteByControlLevel } from '../lib/quotes';
 import { getControlLevelSuggestion, isControlLevelValid, getControlLevelWarning, getControlLevelAdvice } from '../lib/controlLevelSuggestion';
@@ -15,7 +15,6 @@ interface NewTaskProps {
 export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
   const { addTask, showToast, openNps } = useAppStore();
   const [step, setStep] = useState(1);
-  const [resultQuote, setResultQuote] = useState<string>('');
   const { t } = useTranslation();
 
   const [categories, setCategories] = useState<string[]>([]);
@@ -27,6 +26,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
   const [owner, setOwner] = useState<string | null>(null);
   const [control, setControl] = useState<number>(0);
   const [reflectionNote, setReflectionNote] = useState<string>('');
+  const [polarity, setPolarity] = useState<TaskPolarity>(TaskPolarity.Negative);
   const sliderRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const pendingValueRef = useRef<number>(0);
@@ -130,11 +130,10 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
         owner: owner as ResponsibilityOwner,
         controlLevel: control,
         reflection: reflectionNote || undefined,
+        polarity,
       });
-      // 根據掌控力獲取語錄
-      const quote = getQuoteByControlLevel(control);
-      setResultQuote(quote);
-      setStep(5); // 進入結果頁面
+      // 進入結果頁面（語錄在 Step 5 依當前語言與控制力即時計算）
+      setStep(5);
     }
   };
 
@@ -153,6 +152,30 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
         currentStep={1}
       >
         <div key={step}>
+          <div className="mb-6 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setPolarity(TaskPolarity.Positive)}
+              className={`px-3 py-1 rounded-full text-xs md:text-sm border ${
+                polarity === TaskPolarity.Positive
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-white text-gray-600 border-gray-200'
+              }`}
+            >
+              {t('polarity.positive')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPolarity(TaskPolarity.Negative)}
+              className={`px-3 py-1 rounded-full text-xs md:text-sm border ${
+                polarity === TaskPolarity.Negative
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-white text-gray-600 border-gray-200'
+              }`}
+            >
+              {t('polarity.negative')}
+            </button>
+          </div>
           <MultiSelectGrid
             options={Object.values(TaskCategory)}
             selected={categories}
@@ -160,6 +183,16 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
               setCategories(vals);
               if (!vals.includes(TaskCategory.Other)) setCustomCategory('');
             }}
+            getLabel={(option, translate) =>
+              polarity === TaskPolarity.Positive
+                ? translate(`taskCategoryPositive.${option}`)
+                : translate(`taskCategory.${option}`)
+            }
+            getHintOverride={(option, translate) =>
+              polarity === TaskPolarity.Positive
+                ? translate(`taskCategoryPositive.${option}_hint`)
+                : translate(`taskCategory.${option}_hint`)
+            }
           />
           {isOtherSelected && (
             <div>
@@ -200,6 +233,16 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
               setWorries(vals);
               if (!vals.includes(TaskWorry.Other)) setCustomWorry('');
             }}
+            getLabel={(option, translate) =>
+              polarity === TaskPolarity.Positive
+                ? translate(`taskWorryPositive.${option}`)
+                : translate(`taskWorry.${option}`)
+            }
+            getHintOverride={(option, translate) =>
+              polarity === TaskPolarity.Positive
+                ? translate(`taskWorryPositive.${option}_hint`)
+                : translate(`taskWorry.${option}_hint`)
+            }
           />
           {isOtherSelected && (
             <div>
@@ -384,23 +427,64 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
   if (step === 5) {
     // 獲取課題相關的回饋訊息
     const getResultFeedback = (): string => {
-      const categoryLabels = (Array.isArray(categories) ? categories : [categories]).map((cat) =>
-        cat ? t(`taskCategory.${cat}`) : ''
-      );
-      const worryLabels = (Array.isArray(worries) ? worries : [worries]).map((worry) =>
-        worry ? t(`taskWorry.${worry}`) : ''
-      );
+      const categoryLabels = (Array.isArray(categories) ? categories : [categories]).map((cat) => {
+        if (!cat) return '';
+
+        if (polarity === TaskPolarity.Positive) {
+          const positiveKey = `taskCategoryPositive.${cat}`;
+          const positiveLabel = t(positiveKey);
+          if (positiveLabel !== positiveKey) {
+            return positiveLabel;
+          }
+        }
+
+        const defaultKey = `taskCategory.${cat}`;
+        const defaultLabel = t(defaultKey);
+        return defaultLabel !== defaultKey ? defaultLabel : '';
+      });
+
+      const worryLabels = (Array.isArray(worries) ? worries : [worries]).map((worry) => {
+        if (!worry) return '';
+
+        if (polarity === TaskPolarity.Positive) {
+          const positiveKey = `taskWorryPositive.${worry}`;
+          const positiveLabel = t(positiveKey);
+          if (positiveLabel !== positiveKey) {
+            return positiveLabel;
+          }
+        }
+
+        const defaultKey = `taskWorry.${worry}`;
+        const defaultLabel = t(defaultKey);
+        return defaultLabel !== defaultKey ? defaultLabel : '';
+      });
+
       const categoryStr = categoryLabels.filter(Boolean).join('\u3001');
       const worryStr = worryLabels.filter(Boolean).join('\u3001');
 
+      if (polarity === TaskPolarity.Positive) {
+        if (control < 20) {
+          return t('newTask.result.feedbackPositive.low', { category: categoryStr, worry: worryStr, control });
+        }
+        if (control < 60) {
+          return t('newTask.result.feedbackPositive.mid', { category: categoryStr, worry: worryStr, control });
+        }
+
+        return t('newTask.result.feedbackPositive.high', { category: categoryStr, worry: worryStr, control });
+      }
+
       if (control < 20) {
         return t('newTask.result.feedback.low', { category: categoryStr, worry: worryStr, control });
-      } else if (control < 60) {
-        return t('newTask.result.feedback.mid', { category: categoryStr, worry: worryStr, control });
-      } else {
-        return t('newTask.result.feedback.high', { category: categoryStr, worry: worryStr, control });
       }
+      if (control < 60) {
+        return t('newTask.result.feedback.mid', { category: categoryStr, worry: worryStr, control });
+      }
+
+      return t('newTask.result.feedback.high', { category: categoryStr, worry: worryStr, control });
     };
+
+    // 根據控制力與當前語言取得結果頁顯示的語錄
+    const resultQuote = getQuoteByControlLevel(control);
 
     return (
       <div className="min-h-screen flex items-center justify-center p-4 md:p-6 bg-background">
@@ -440,17 +524,24 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
                 <p className="text-xs md:text-sm text-gray-600"><strong>{t('newTask.result.reflectionTitle')}</strong></p>
               </div>
               <p className="text-xs md:text-sm text-gray-700 leading-relaxed">
-                {control < 20
-                  ? t('newTask.result.reflection.low')
-                  : control < 60
-                    ? t('newTask.result.reflection.mid')
-                    : t('newTask.result.reflection.high')}
+                {polarity === TaskPolarity.Positive
+                  ? (control < 20
+                    ? t('newTask.result.reflectionPositive.low')
+                    : control < 60
+                      ? t('newTask.result.reflectionPositive.mid')
+                      : t('newTask.result.reflectionPositive.high'))
+                  : (control < 20
+                    ? t('newTask.result.reflection.low')
+                    : control < 60
+                      ? t('newTask.result.reflection.mid')
+                      : t('newTask.result.reflection.high'))}
               </p>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-2 md:gap-3">
               <button
+                type="button"
                 onClick={() => {
                   navigate('journal');
                 }}
@@ -460,6 +551,7 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
                 {t('newTask.result.toJournal')}
               </button>
               <button
+                type="button"
                 onClick={() => {
                   navigate('dashboard');
                 }}
@@ -471,10 +563,9 @@ export const NewTask: React.FC<NewTaskProps> = ({ navigate }) => {
             </div>
           </div>
         </div>
-
       </div>
     );
   }
 
   return null;
-};
+}

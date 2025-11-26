@@ -114,59 +114,15 @@ export const getRandomQuote = (): string => {
 };
 
 export const getQuoteByControlLevel = (controlLevel: number): string => {
-  const lang = i18n.language;
   if (controlLevel < 20) {
-    const lowControlQuotes = lang.startsWith('en')
-      ? [
-          'Some things are outside your control — accepting this is already a form of strength.',
-          'Letting go is not giving up; it is choosing where your energy truly matters.',
-          'You cannot control others, but you can always choose how you respond.',
-          'Accepting what you cannot change is the beginning of real peace.',
-          'Not every burden is yours to carry; you are allowed to put some down.',
-        ]
-      : [
-          '有些事情不在你的掌控中，但你學會接納它們的勇氣令人敬佩。',
-          '放手不是放棄，而是智慧的選擇——你把能量用在真正能改變的事情上。',
-          '你無法控制他人的想法，但你已經掌握了最重要的——控制自己的反應。',
-          '接納現實，正是你展現力量的時刻。',
-          '不是所有的壓力都需要你承擔，你有權放下。',
-        ];
-    return lowControlQuotes[Math.floor(Math.random() * lowControlQuotes.length)];
-  } else if (controlLevel < 60) {
-    const mediumControlQuotes = lang.startsWith('en')
-      ? [
-          'When you see clearly which part is yours and which part is others’, you gain real freedom.',
-          'Separating tasks is not distance — it is a respectful boundary for both sides.',
-          'For shared tasks, communication and collaboration are your strongest tools.',
-          'You are learning the art of balancing control and letting go — that is not easy, and you are doing it.',
-          'Every time you clarify things, you grow stronger and calmer.',
-        ]
-      : [
-          '分清楚這是你的課題還是別人的，你就贏了。',
-          '課題分離不是冷漠，而是你對自己和他人的尊重。',
-          '溝通和協作是解決共同課題的鑰匙，而你正在學會這一點。',
-          '平衡掌控與放手，你正在學會這個藝術——你做得很好。',
-          '每一次釐清，都是你變得更強大的證明。',
-        ];
-    return mediumControlQuotes[Math.floor(Math.random() * mediumControlQuotes.length)];
-  } else {
-    const highControlQuotes = lang.startsWith('en')
-      ? [
-          'You are focusing on what you can change — that is powerful.',
-          'Every small step you take is moving your life forward.',
-          'You have more influence than you give yourself credit for.',
-          'Change begins when you face reality honestly — and you already have.',
-          'Trust your sense of direction; you have learned a lot to get here.',
-        ]
-      : [
-          '專注於你能控制的部分，你已經在做最聰明的事了。',
-          '每一個小行動，都是你改變世界的開始。',
-          '你比你想像的更有力量——相信自己。',
-          '改變從認清現實開始，而你已經踏出了第一步。',
-          '相信你的直覺，它通常是對的——你比自己想像的更聰慧。',
-        ];
-    return highControlQuotes[Math.floor(Math.random() * highControlQuotes.length)];
+    return i18n.t('newTask.result.quote.low');
   }
+
+  if (controlLevel < 60) {
+    return i18n.t('newTask.result.quote.mid');
+  }
+
+  return i18n.t('newTask.result.quote.high');
 };
 
 // 每日語錄 - 根據日期返回固定的語錄，確保同一天顯示相同的語錄

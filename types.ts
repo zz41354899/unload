@@ -27,6 +27,10 @@ export enum ResponsibilityOwner {
   Shared = 'Shared'
 }
 
+export enum TaskPolarity {
+  Positive = 'positive',
+  Negative = 'negative',
+}
 
 export interface Task {
   id: string;
@@ -36,6 +40,7 @@ export interface Task {
   owner: ResponsibilityOwner;
   controlLevel: number;
   reflection?: string; // 反思日記
+  polarity?: TaskPolarity; // 正向 / 負向，舊資料可能沒有
 }
 
 export interface User {

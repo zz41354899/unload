@@ -111,6 +111,8 @@ interface MultiSelectGridProps {
   options: string[];
   selected: string[];
   onSelect: (values: string[]) => void;
+  getLabel?: (option: string, t: (key: string) => string) => string;
+  getHintOverride?: (option: string, t: (key: string) => string) => string | undefined;
 }
 
 export const SelectionGrid: React.FC<SelectionGridProps> = ({ options, selected, onSelect }) => {
@@ -157,7 +159,7 @@ export const SelectionGrid: React.FC<SelectionGridProps> = ({ options, selected,
   );
 };
 
-export const MultiSelectGrid: React.FC<MultiSelectGridProps> = ({ options, selected, onSelect }) => {
+export const MultiSelectGrid: React.FC<MultiSelectGridProps> = ({ options, selected, onSelect, getLabel, getHintOverride }) => {
   const { t } = useTranslation();
 
   const toggleOption = (option: string) => {
@@ -169,6 +171,10 @@ export const MultiSelectGrid: React.FC<MultiSelectGridProps> = ({ options, selec
   };
 
   const getHint = (option: string) => {
+    if (getHintOverride) {
+      return getHintOverride(option, t) ?? '';
+    }
+
     switch (option) {
       case TaskCategory.Interview: return t('taskCategory.Interview_hint');
       case TaskCategory.CareerPlanning: return t('taskCategory.CareerPlanning_hint');
@@ -217,7 +223,7 @@ export const MultiSelectGrid: React.FC<MultiSelectGridProps> = ({ options, selec
               )}
             </div>
             <div className="flex flex-col">
-              <span>{getOptionLabel(t, option)}</span>
+              <span>{getLabel ? getLabel(option, t) : getOptionLabel(t, option)}</span>
               {getHint(option) && (
                 <span className="mt-1 text-xs text-gray-400">
                   {getHint(option)}
