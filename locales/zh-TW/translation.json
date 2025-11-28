@@ -11,6 +11,8 @@
   "journal.title": "反思日記",
   "journal.subtitle": "記錄每日的課題與反思，追蹤自己的成長",
   "journal.dailyQuote.title": "今日語錄",
+  "journal.dailyQuote.stagePrefix": "今天想先照顧的環節：",
+  "journal.dailyQuote.practicePrefix": "今天可以試試：",
   "journal.stats.today.title": "今日察覺觀察",
   "journal.stats.today.total": "今日記錄數",
   "journal.stats.today.mine": "聚焦於對自己的察覺",

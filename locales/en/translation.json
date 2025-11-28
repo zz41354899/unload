@@ -11,6 +11,8 @@
   "journal.title": "Reflection journal",
   "journal.subtitle": "Record your daily tasks and reflections to track your growth.",
   "journal.dailyQuote.title": "Quote of the day",
+  "journal.dailyQuote.stagePrefix": "Today, the part you may want to care for first: ",
+  "journal.dailyQuote.practicePrefix": "Today you could try: ",
   "journal.stats.today.title": "Today's boundary observation",
   "journal.stats.today.total": "Records today",
   "journal.stats.today.mine": "My tasks",

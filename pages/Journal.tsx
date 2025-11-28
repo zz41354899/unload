@@ -581,7 +581,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
                 <p className="text-xs md:text-sm text-gray-600 font-medium">
                   {dailyCue.stageTitle && (
                     <span>
-                      今天想先照顧的環節：
+                      {t('journal.dailyQuote.stagePrefix')}
                       <span className="font-semibold text-text">{dailyCue.stageTitle}</span>
                     </span>
                   )}
@@ -590,7 +590,7 @@ export const Journal: React.FC<JournalProps> = ({ navigate }) => {
                   {dailyCue.stageDescription}
                 </p>
                 <p className="text-xs md:text-sm text-gray-700">
-                  今天可以試試：
+                  {t('journal.dailyQuote.practicePrefix')}
                   <span className="font-semibold">{dailyCue.practiceName}</span>
                   <span> — {dailyCue.actionSentence}</span>
                 </p>
