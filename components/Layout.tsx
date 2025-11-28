@@ -227,7 +227,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentPage, navigate 
                     ) : (
                         <LogOut className="w-5 h-5" />
                     )}
-                    {isLoggingOut ? '登出中...' : '登出'}
+                    {isLoggingOut ? t('layout.logout.loading') : t('layout.logout.label')}
                 </button>
             )}
           </div>
