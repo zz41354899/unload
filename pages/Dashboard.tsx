@@ -2,9 +2,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store';
-import { ResponsibilityOwner, TaskWorry, TaskPolarity } from '../types';
-import { Smile, MessageSquare, Book, TrendingUp, Zap, Target, Brain, Lightbulb, Sparkles, ChevronDown } from 'lucide-react';
-import { getDailyQuote } from '../lib/quotes';
+import { ResponsibilityOwner, TaskCategory, Task, TaskWorry, TaskPolarity } from '../types';
+import { Smile, MessageSquare, Book, TrendingUp, Target, Sparkles } from 'lucide-react';
+import { DailyStepId, getDailyCue, getDailyCueForStep } from '../lib/quotes';
 
 interface DashboardProps {
   navigate: (page: string) => void;
@@ -14,80 +14,144 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
   const { tasks, user } = useAppStore();
   const { t, i18n } = useTranslation();
 
-  const [polarityFilter, setPolarityFilter] = React.useState<'all' | 'positive' | 'negative'>('all');
-
   // Date Helper
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonthLabel = today.toLocaleString(i18n.language, { month: 'long' });
+  const todayStr = today.toISOString().split('T')[0];
 
-  const filteredTasks = React.useMemo(
-    () =>
-      tasks.filter(task => {
-        if (!polarityFilter || polarityFilter === 'all') return true;
-        const effectivePolarity = task.polarity ?? TaskPolarity.Negative;
-        return effectivePolarity === polarityFilter;
-      }),
-    [tasks, polarityFilter],
-  );
+  const totalTasks = tasks.length;
+  const myTasks = tasks.filter(t => t.owner === ResponsibilityOwner.Mine).length;
+  const theirTasks = tasks.filter(t => t.owner === ResponsibilityOwner.Theirs).length;
+  const sharedTasks = tasks.filter(t => t.owner === ResponsibilityOwner.Shared).length;
 
-  const totalTasks = filteredTasks.length;
-  const myTasks = filteredTasks.filter(t => t.owner === ResponsibilityOwner.Mine).length;
-  const theirTasks = filteredTasks.filter(t => t.owner === ResponsibilityOwner.Theirs).length;
-  const sharedTasks = filteredTasks.filter(t => t.owner === ResponsibilityOwner.Shared).length;
-
-  const hasFilteredTasks = filteredTasks.length > 0;
-  const avgControl = hasFilteredTasks
-    ? Math.round(filteredTasks.reduce((sum, t) => sum + t.controlLevel, 0) / filteredTasks.length)
-    : 0;
-
-  // Get top worries
-  const getTopWorries = () => {
-    if (filteredTasks.length === 0) return [];
-
-    const counts: Record<string, number> = {};
-    filteredTasks.forEach(t => {
-      const worries = Array.isArray(t.worry) ? t.worry : [t.worry];
-      worries.forEach(worry => {
-        counts[worry] = (counts[worry] || 0) + 1;
-      });
-    });
-
-    return Object.entries(counts)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => ({ name, count }));
-  };
-
-  const topWorries = getTopWorries();
-
-  const getWorryLabel = (worry: string, isPositive: boolean) => {
+  // 依情緒標籤 (category) 統計最常探索的情緒
+  const getCategoryLabel = (cat: string) => {
     const keyFor = (suffix: string) => {
-      if (isPositive) {
-        const positiveKey = `taskWorryPositive.${suffix}`;
-        const positiveLabel = t(positiveKey);
-        if (positiveLabel !== positiveKey) {
-          return positiveLabel;
-        }
-      }
-
-      const defaultKey = `taskWorry.${suffix}`;
+      const defaultKey = `taskCategory.${suffix}`;
       const defaultLabel = t(defaultKey);
       return defaultLabel !== defaultKey ? defaultLabel : suffix;
     };
 
-    switch (worry) {
-      case TaskWorry.Performance: return keyFor('Performance');
-      case TaskWorry.Rejection: return keyFor('Rejection');
-      case TaskWorry.OthersThoughts: return keyFor('OthersThoughts');
-      case TaskWorry.Pressure: return keyFor('Pressure');
-      case TaskWorry.Comparison: return keyFor('Comparison');
-      case TaskWorry.TimeStress: return keyFor('TimeStress');
-      case TaskWorry.Decision: return keyFor('Decision');
-      case TaskWorry.Uncertainty: return keyFor('Uncertainty');
-      case TaskWorry.Other: return keyFor('Other');
-      default: return worry;
+    switch (cat) {
+      case TaskCategory.Interview: return keyFor('Interview');
+      case TaskCategory.CareerPlanning: return keyFor('CareerPlanning');
+      case TaskCategory.SelfConfusion: return keyFor('SelfConfusion');
+      case TaskCategory.ProgressAnxiety: return keyFor('ProgressAnxiety');
+      case TaskCategory.ExpectationPressure: return keyFor('ExpectationPressure');
+      case TaskCategory.FinancialPressure: return keyFor('FinancialPressure');
+      case TaskCategory.MarketChange: return keyFor('MarketChange');
+      case TaskCategory.Other: return keyFor('Other');
+      default: return cat;
     }
   };
+
+  const getTopEmotion = () => {
+    if (tasks.length === 0) return null;
+
+    const counts: Record<string, number> = {};
+    tasks.forEach(t => {
+      const categories = Array.isArray(t.category) ? t.category : [t.category];
+      categories.forEach(category => {
+        if (!category) return;
+        counts[category] = (counts[category] || 0) + 1;
+      });
+    });
+
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    if (sorted.length === 0) return null;
+
+    const [categoryKey, count] = sorted[0];
+    return { categoryKey, count };
+  };
+
+  const topEmotion = getTopEmotion();
+
+  const getStepIdFromCategory = (cat: string): DailyStepId | null => {
+    switch (cat) {
+      // 緊張：多半是壓力與身體警覺度偏高
+      case TaskCategory.Interview:
+        return 'stress';
+      // 焦慮／不安：偏向對未來與方向的不確定
+      case TaskCategory.CareerPlanning:
+      case TaskCategory.MarketChange:
+        return 'anxiety';
+      // 迷惘：容易連到自我評價與價值感（低自尊環節）
+      case TaskCategory.SelfConfusion:
+        return 'lowSelfEsteem';
+      // 沮喪：常表現在延遲行動、提不起勁（延宕環節）
+      case TaskCategory.ProgressAnxiety:
+        return 'procrastination';
+      // 壓力：扛太多東西在身上的感覺
+      case TaskCategory.ExpectationPressure:
+        return 'stress';
+      // 疲憊：比較像是忽略基本需求、沒時間休息
+      case TaskCategory.FinancialPressure:
+        return 'neglectNeeds';
+      // 情怒或其他特殊情緒：先視為容易被觸發的一環
+      case TaskCategory.Other:
+        return 'easilyTriggered';
+      default:
+        return null;
+    }
+  };
+
+  const getStepIdFromWorry = (w: string, polarity?: TaskPolarity | null): DailyStepId | null => {
+    switch (w) {
+      case TaskWorry.TimeStress:
+      case TaskWorry.Pressure:
+        return 'stress';
+      case TaskWorry.Uncertainty:
+      case TaskWorry.Decision:
+        return 'anxiety';
+      case TaskWorry.Comparison:
+        return 'distortedBelief';
+      case TaskWorry.Performance:
+        return polarity === TaskPolarity.Positive ? 'lowSelfEsteem' : 'distortedBelief';
+      default:
+        return null;
+    }
+  };
+
+  const inferStepIdFromTasks = (sourceTasks: Task[]): DailyStepId | null => {
+    const counts: Partial<Record<DailyStepId, number>> = {};
+
+    sourceTasks.forEach((task) => {
+      // 先依情緒標籤（category）推一步驟，讓整體情緒調性優先
+      const categories = Array.isArray(task.category) ? task.category : [task.category];
+      categories.forEach((cat) => {
+        const stepIdFromCat = getStepIdFromCategory(cat as string);
+        if (!stepIdFromCat) return;
+        counts[stepIdFromCat] = (counts[stepIdFromCat] ?? 0) + 2; // 類別給較高權重
+      });
+
+      // 再依焦點 worry 作為輔助訊息
+      const worries = Array.isArray(task.worry) ? task.worry : [task.worry];
+      worries.forEach((w) => {
+        const stepId = getStepIdFromWorry(w as string, task.polarity);
+        if (!stepId) return;
+        counts[stepId] = (counts[stepId] ?? 0) + 1;
+      });
+    });
+
+    let bestId: DailyStepId | null = null;
+    let bestCount = 0;
+    (Object.keys(counts) as DailyStepId[]).forEach((id) => {
+      const value = counts[id] ?? 0;
+      if (value > bestCount) {
+        bestCount = value;
+        bestId = id;
+      }
+    });
+
+    return bestCount > 0 ? bestId : null;
+  };
+
+  const todayTasks = tasks.filter((t) => t.date.split('T')[0] === todayStr);
+  const baseDailyCue = getDailyCue();
+  const inferredStepId = inferStepIdFromTasks(todayTasks);
+  const inferredCue = inferredStepId ? getDailyCueForStep(inferredStepId) : null;
+  const dailyCue = inferredCue ?? baseDailyCue;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 pb-12 px-4 md:px-0">
@@ -112,15 +176,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
         </button>
       </div>
 
-      {/* Daily Quote */}
+      {/* Daily Cue */}
       <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-2xl p-3 md:p-8 border border-primary/20 shadow-sm">
         <div className="flex items-start gap-3 md:gap-4">
           <Sparkles className="w-5 md:w-6 h-5 md:h-6 text-primary shrink-0 mt-0.5 md:mt-1" />
           <div className="flex-1 min-w-0">
             <p className="text-xs md:text-sm text-primary/60 font-medium mb-1 md:mb-2">{t('journal.dailyQuote.title')}</p>
-            <p className="text-sm md:text-lg leading-relaxed text-text font-medium break-words">
-              "{getDailyQuote()}"
-            </p>
+            <div className="space-y-1 md:space-y-2">
+              <p className="text-xs md:text-sm text-gray-600 font-medium">
+                {dailyCue.stageTitle && (
+                  <span>
+                    今天想先照顧的環節：
+                    <span className="font-semibold text-text">{dailyCue.stageTitle}</span>
+                  </span>
+                )}
+              </p>
+              <p className="text-sm md:text-base leading-relaxed text-text">
+                {dailyCue.stageDescription}
+              </p>
+              <p className="text-xs md:text-sm text-gray-700">
+                今天可以試試：
+                <span className="font-semibold">{dailyCue.practiceName}</span>
+                <span> — {dailyCue.actionSentence}</span>
+              </p>
+              <p className="text-[11px] md:text-xs text-gray-500">
+                {dailyCue.anchorQuote}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -146,134 +228,96 @@ export const Dashboard: React.FC<DashboardProps> = ({ navigate }) => {
         ))}
       </div>
 
-      {/* Quick Stats & Personal Insights */}
+      {/* Focus Cards: Emotion & Perspective */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
 
-        {/* Quick Stats */}
-        <div className="bg-white rounded-2xl p-4 md:p-8 shadow-sm border border-gray-100">
-          <div className="flex items-center gap-2 mb-6">
-            <Zap className="w-5 h-5 text-primary" />
-            <h3 className="font-bold text-lg">{t('dashboard.quick.title')}</h3>
-          </div>
-
-          {hasFilteredTasks ? (
-            <div className="space-y-4">
-              <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg p-6 border border-primary/20">
-                <div className="text-sm text-gray-600 mb-2">{t('dashboard.quick.avg')}</div>
-                <div className="text-4xl font-bold text-primary mb-2">{avgControl}%</div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${avgControl}%` }}
-                  ></div>
+        {/* Most explored emotion */}
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="w-5 h-5 text-primary" />
+              <h3 className="font-bold text-sm md:text-base">{t('dashboard.focus.emotion.title')}</h3>
+            </div>
+            {topEmotion && totalTasks > 0 ? (
+              <>
+                <div className="text-2xl md:text-3xl font-bold text-text mb-1 break-words">
+                  {getCategoryLabel(topEmotion.categoryKey)}
                 </div>
-              </div>
-
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {avgControl >= 70
-                  ? t('dashboard.quick.hint.high')
-                  : avgControl >= 40
-                    ? t('dashboard.quick.hint.mid')
-                    : t('dashboard.quick.hint.low')}
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center text-gray-400 py-8">
-              <Zap className="w-8 h-8 mb-2 opacity-20" />
-              <span className="text-sm">{t('dashboard.quick.empty')}</span>
-            </div>
-          )}
+                <p className="text-xs md:text-sm text-gray-500">
+                  {t('dashboard.focus.emotion.subtitle', { count: topEmotion.count })}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs md:text-sm text-gray-400">{t('dashboard.focus.empty')}</p>
+            )}
+          </div>
         </div>
 
-        {/* Personal Insights */}
-        <div className="bg-white rounded-2xl p-4 md:p-8 shadow-sm border border-gray-100">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 md:mb-6">
-            <div className="flex items-center gap-2">
-              <Brain className="w-5 h-5 text-primary" />
-              <h3 className="font-bold text-lg">{t('dashboard.insight.title')}</h3>
+        {/* Most used perspective */}
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="w-5 h-5 text-primary" />
+              <h3 className="font-bold text-sm md:text-base">{t('dashboard.focus.view.title')}</h3>
             </div>
-            <div className="relative w-full sm:w-auto">
-              <select
-                value={polarityFilter}
-                onChange={(e) => setPolarityFilter(e.target.value as 'all' | 'positive' | 'negative')}
-                className="appearance-none w-full sm:w-auto bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 pr-7 text-xs md:text-sm text-gray-700 cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="all">{t('polarity.all')}</option>
-                <option value="positive">{t('polarity.positive')}</option>
-                <option value="negative">{t('polarity.negative')}</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
+            {totalTasks > 0 ? (
+              (() => {
+                const counts: Record<string, number> = { reality: 0, distance: 0, value: 0, observe: 0 };
+                tasks.forEach(task => {
+                  if (task.perspective && counts[task.perspective] != null) {
+                    counts[task.perspective] += 1;
+                  }
+                });
+                const totalWithPerspective = counts.reality + counts.distance + counts.value + counts.observe;
+                if (totalWithPerspective === 0) {
+                  return <p className="text-xs md:text-sm text-gray-400">{t('dashboard.focus.empty')}</p>;
+                }
 
-          {filteredTasks.length > 0 ? (
-            <div className="space-y-3">
-              {(() => {
-                const positiveTasks = tasks.filter(t => (t.polarity ?? TaskPolarity.Negative) === TaskPolarity.Positive);
-                const negativeTasks = tasks.filter(t => (t.polarity ?? TaskPolarity.Negative) === TaskPolarity.Negative);
+                const realityRatio = Math.round((counts.reality / totalWithPerspective) * 100);
+                const distanceRatio = Math.round((counts.distance / totalWithPerspective) * 100);
+                const observeRatio = Math.round((counts.observe / totalWithPerspective) * 100);
+                const valueRatio = Math.max(0, 100 - realityRatio - distanceRatio - observeRatio);
 
-                const getTopFromList = (source: typeof tasks) => {
-                  if (source.length === 0) return null;
-                  const counts: Record<string, number> = {};
-                  source.forEach(t => {
-                    const worries = Array.isArray(t.worry) ? t.worry : [t.worry];
-                    worries.forEach(w => {
-                      counts[w] = (counts[w] || 0) + 1;
-                    });
-                  });
-                  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
-                  return top ? top[0] : null;
-                };
+                let mainKey: 'reality' | 'distance' | 'value' | 'observe' = 'reality';
+                if (counts.distance >= counts.reality && counts.distance >= counts.value && counts.distance >= counts.observe) mainKey = 'distance';
+                if (counts.value >= counts.reality && counts.value >= counts.distance && counts.value >= counts.observe) mainKey = 'value';
+                if (counts.observe >= counts.reality && counts.observe >= counts.distance && counts.observe >= counts.value) mainKey = 'observe';
 
-                const positiveTopWorry = getTopFromList(positiveTasks);
-                const negativeTopWorry = getTopFromList(negativeTasks);
-
-                const showPositive = polarityFilter === 'all' || polarityFilter === 'positive';
-                const showNegative = polarityFilter === 'all' || polarityFilter === 'negative';
+                const mainLabelKey =
+                  mainKey === 'reality'
+                    ? 'newTask.perspective.reality.title'
+                    : mainKey === 'distance'
+                      ? 'newTask.perspective.distance.title'
+                      : mainKey === 'value'
+                        ? 'newTask.perspective.value.title'
+                        : 'newTask.perspective.observe.title';
 
                 return (
                   <>
-                    <div className="flex gap-3 p-3 bg-gray-50 rounded-lg">
-                      <Target className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                      <p className="text-sm text-gray-700">
-                        {t('dashboard.insight.distribution', { mine: myTasks, shared: sharedTasks, theirs: theirTasks })}
-                      </p>
+                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-3 flex">
+                      {realityRatio > 0 && (
+                        <div className="bg-primary/80 h-full" style={{ width: `${realityRatio}%` }} />
+                      )}
+                      {distanceRatio > 0 && (
+                        <div className="bg-accent/80 h-full" style={{ width: `${distanceRatio}%` }} />
+                      )}
+                      {valueRatio > 0 && (
+                        <div className="bg-primary/30 h-full" style={{ width: `${valueRatio}%` }} />
+                      )}
+                      {observeRatio > 0 && (
+                        <div className="bg-gray-300 h-full" style={{ width: `${observeRatio}%` }} />
+                      )}
                     </div>
-
-                    {showPositive && positiveTopWorry && (
-                      <div className="flex gap-3 p-3 bg-gray-50 rounded-lg">
-                        <Lightbulb className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <p className="text-sm text-gray-700">
-                          {t('dashboard.insight.mainHighlight', { worry: getWorryLabel(positiveTopWorry as string, true) })}
-                        </p>
-                      </div>
-                    )}
-
-                    {showNegative && negativeTopWorry && (
-                      <div className="flex gap-3 p-3 bg-gray-50 rounded-lg">
-                        <Lightbulb className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <p className="text-sm text-gray-700">
-                          {t('dashboard.insight.mainWorry', { worry: getWorryLabel(negativeTopWorry as string, false) })}
-                        </p>
-                      </div>
-                    )}
-
-                    <button
-                      onClick={() => navigate('journal')}
-                      className="w-full mt-4 px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors text-sm font-medium"
-                    >
-                      {t('dashboard.insight.viewMore')}
-                    </button>
+                    <p className="text-xs md:text-sm text-gray-600 mb-1">
+                      {t('dashboard.focus.view.subtitle', { label: t(mainLabelKey) })}
+                    </p>
                   </>
                 );
-              })()}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center text-gray-400 py-8">
-              <Brain className="w-8 h-8 mb-2 opacity-20" />
-              <span className="text-sm">{t('dashboard.insight.empty')}</span>
-            </div>
-          )}
+              })()
+            ) : (
+              <p className="text-xs md:text-sm text-gray-400">{t('dashboard.focus.empty')}</p>
+            )}
+          </div>
         </div>
 
       </div>
