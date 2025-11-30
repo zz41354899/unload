@@ -1,18 +1,28 @@
 @import "tailwindcss";
 
 @theme {
-    --color-background: #F9F8F4;
-    --color-primary: #2C3E2C;
+    /* 色彩系統：採用行銷站的暖白背景與石墨色主色 */
+    --color-background: #FDFCF8;
+    --color-primary: #2D3748;          /* Deep Graphite/Blue */
+    --color-primary-light: #4A5568;
+    --color-secondary: #E2E8F0;        /* Soft Grey */
+    --color-secondary-light: #F8FAFC;  /* Off-white */
+    --color-secondary-accent: #94A3B8; /* Muted Grey Blue */
+
+    /* 沿用原本的文字 / 表面顏色，方便既有元件使用 */
     --color-text: #1E2A22;
     --color-accent: #1ABC9C;
     --color-muted: #9CA3AF;
     --color-surface: #FFFFFF;
 
-    --font-sans: Lato, "Noto Sans TC", system-ui, sans-serif;
+    /* 字體：行銷站設定 */
+    --font-sans: "Inter", "Noto Sans TC", system-ui, sans-serif;
 
+    /* 動畫設定：保留原 fade/slide/scale，並加入 float */
     --animate-fade-in: fadeIn 0.5s ease-out forwards;
     --animate-slide-up: slideUp 0.4s ease-out forwards;
     --animate-scale-in: scaleIn 0.2s ease-out forwards;
+    --animate-float: float 6s ease-in-out infinite;
 
     @keyframes fadeIn {
         0% {
@@ -47,15 +57,37 @@
             opacity: 1;
         }
     }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+}
+
+/* Smooth scrolling for the whole page */
+html {
+    scroll-behavior: smooth;
 }
 
 /* Base styles */
 body {
     @apply bg-background text-text;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
+/* 讓常見可點擊元素預設顯示指標游標 */
 button,
-[role="button"] {
+a,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
     cursor: pointer;
 }
 

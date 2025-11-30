@@ -10,12 +10,14 @@ import { History } from './pages/History';
 import { NewTask } from './pages/NewTask';
 import { Journal } from './pages/Journal';
 import { Onboarding } from './pages/Onboarding';
+import { MarketingShell } from './components/MarketingShell';
 
 const AppContent: React.FC = () => {
   const { user, toast, shouldShowNps, closeNps } = useAppStore();
   const [currentPage, setCurrentPage] = useState('login');
   const [npsScore, setNpsScore] = useReactState<number | null>(null);
   const [npsComment, setNpsComment] = useReactState('');
+  const [showMarketingShell, setShowMarketingShell] = useReactState(true);
   const { t, i18n } = useTranslation();
 
   // Simple Route Protection
@@ -40,8 +42,12 @@ const AppContent: React.FC = () => {
     }
   }, [i18n.language]);
 
-  // 若尚未登入，直接顯示登入頁（避免登出後還停留在舊頁面，需要手動重整）
+  // 若尚未登入，先顯示行銷首頁殼，使用者選擇進入體驗後再顯示登入頁
   if (!user) {
+    if (showMarketingShell) {
+      return <MarketingShell onEnterApp={() => setShowMarketingShell(false)} />;
+    }
+
     return <Login navigate={setCurrentPage} />;
   }
 
